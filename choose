@@ -1,0 +1,220 @@
+#! /bin/sh -e
+
+print_help () {
+	cat >&2 <<- END_OF_HELP
+		It returns on stdout the chosen line among the ones submitted via stdin.
+		Apart result, all is printed on stderr.
+
+	END_OF_HELP
+	print_usage
+}
+
+print_usage () {
+	cat >&2 <<- END_OF_USAGE
+		usages:
+		         command_which_print_choices | $B$SELF$R [${U}options$R] [${U}default choice$R]
+		         $B$SELF$R [${U}options$R] [${U}default choice$R] < file_of_choices
+		options:
+		         ${B}-c$R   cursor mode (default)
+		         ${B}-n$R   numerated mode
+		         ${B}-q$R   quiet if only one choice
+		         ${B}-h$R   help
+	END_OF_USAGE
+}
+
+alert () {
+	echo $SELF: "$@" >&2
+	exit 1
+}
+
+set_defaults () {
+	unset DEFAULT
+	MODE=cursor
+	QUIET=false
+	N=0
+}
+
+handle_args () {
+	local ARG
+	SELF=$(basename $0)
+	while getopts cnqh ARG ; do
+		case $ARG in
+			c ) MODE=cursor ;;
+			n ) MODE=numerated ;;
+			q ) QUIET=true ;;
+			h ) print_help
+				exit 0 ;;
+		esac
+	done
+	shift $((OPTIND - 1))
+	DEFAULT=$*
+}
+
+check_input () {
+	if ! has_batch_input ; then
+		print_usage
+		alert 'no input'
+	fi
+}
+
+has_batch_input () {
+	test ! -t 0
+}
+
+is_redirected () {
+	test ! -t 2
+}
+
+count_lines () {
+	echo "$@" | grep -v '^$' | wc -l
+}
+
+isdigit () {
+	test $# -eq 1
+	case $1 in
+		*[!0-9]* | '') false ;;
+	esac
+}
+
+code2hex () {
+	od -t x1 | head -n1 | cut -d' ' -f2- | tr -d ' '
+}
+
+get_key_codes () {
+	# ENTER
+	TTY_ENT=$(echo | code2hex)
+	TTY_KENT=$(tput kent | code2hex)
+	# UP
+	TTY_CUU1=$(tput cuu1 | code2hex)
+	TTY_KCUU1=$(tput kcuu1 | code2hex)
+	# DOWN
+	TTY_CUD1=$(tput cud1 | code2hex)
+	TTY_KCUD1=$(tput kcud1 | code2hex)
+	# some terminals send the wrong code for certain arrow keys
+	if [ "$TTY_CUU1" = 1b5b41 -o "$TTY_KCUU1" = 1b5b41 ] ; then
+		TTY_CUDX=1b5b42
+	fi
+}
+
+configure_tty () {
+	TTY_SAVE=$(stty -g)
+	trap 'restore_tty ; exit 1' INT QUIT TERM
+	stty cs8 -icanon -echo
+}
+
+restore_tty () {
+	stty $TTY_SAVE >&- 2>&-
+}
+
+set_fancy_output () {
+	if is_redirected ; then
+		unset R B U
+	else
+		R='[0m'
+		B='[1m'
+		U='[4m'
+	fi
+}
+
+cursor_begin () {
+	printf '[s' # save position
+	printf "[$((CHOICES_COUNT - N + 1))A" # go up to current line
+}
+
+cursor_end () {
+	printf '[u' # restore position at the bottom
+}
+
+cursor_erase () {
+	cursor_begin
+	printf '  '
+	printf '[2D' # go to beginning of line
+}
+
+cursor_draw () {
+	printf '=>'
+	cursor_end
+}
+
+cursor_move_up () {
+	if [ $N -gt 1 ] ; then
+		cursor_erase
+		printf '[A' # go to upper line
+		: $((N --))
+		cursor_draw
+	fi
+}
+
+cursor_move_down () {
+	if [ $N -lt $CHOICES_COUNT ] ; then
+		cursor_erase
+		printf '[B' # go to lower line
+		: $((N ++))
+		cursor_draw
+	fi
+}
+
+default_arrow_filter () {
+	if [ -n "$DEFAULT" ] ; then
+		sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,=>\1,"
+	else
+		cat
+	fi
+}
+
+get_default_index () {
+	if [ -n "$DEFAULT" ] ; then
+		echo "$CHOICES" | sed -n "/^$DEFAULT$/="
+	fi
+}
+
+numerated_list () {
+	echo "$CHOICES" | cat -n | default_arrow_filter
+}
+
+cursor_list () {
+	echo "$CHOICES" | sed 's,^,    ,'
+}
+
+numerated_choice () {
+	while : ; do
+		printf "> "
+		read N
+		isdigit "$N" || N=0 # fallback to invalid choice
+		[ $N -lt 1 -o $CHOICES_COUNT -lt $N ] || break
+	done
+}
+
+cursor_choice () {
+	get_key_codes
+	configure_tty
+	N=$(get_default_index)
+	isdigit "$N" || N=1 # fallback to first choice
+	cursor_begin
+	cursor_draw
+	local KEY
+	while : ; do
+		KEY=$(dd bs=4 count=1 2>&- | code2hex)
+		case $KEY in
+			"$TTY_ENT"  | "$TTY_KENT"                ) break ;;
+			"$TTY_CUU1" | "$TTY_KCUU1"               ) cursor_move_up ;;
+			"$TTY_CUD1" | "$TTY_KCUD1" | "$TTY_CUDX" ) cursor_move_down ;;
+		esac
+	done
+	restore_tty
+}
+
+set_defaults
+set_fancy_output
+handle_args "$@"
+check_input
+CHOICES=$(grep -v '^$') # get standard input without blank lines
+CHOICES_COUNT=$(count_lines "$CHOICES")
+if [ $CHOICES_COUNT -le 1 ] ; then # no choice
+	$QUIET || ${MODE}_list >&2
+	N=1
+else
+	${MODE}_list >&2
+	${MODE}_choice >&2 </proc/$PPID/fd/0 # get terminal input
+fi
+echo "$CHOICES" | sed -n ${N}p # return chosen line on standard output
