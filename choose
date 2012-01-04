@@ -1,7 +1,7 @@
 #! /bin/sh -e
 
 print_help () {
-	cat >&2 <<- END_OF_HELP
+	cat <<- END_OF_HELP
 		It returns on stdout the chosen line among the ones submitted via stdin.
 		Apart result, all is printed on stderr.
 
@@ -10,7 +10,7 @@ print_help () {
 }
 
 print_usage () {
-	cat >&2 <<- END_OF_USAGE
+	cat <<- END_OF_USAGE
 		usages:
 		         command_which_print_choices | $B$SELF$R [${U}options$R] [${U}default choice$R]
 		         $B$SELF$R [${U}options$R] [${U}default choice$R] < file_of_choices
@@ -23,7 +23,7 @@ print_usage () {
 }
 
 alert () {
-	echo $SELF: "$@" >&2
+	echo $SELF: "$@"
 	exit 1
 }
 
@@ -204,17 +204,19 @@ cursor_choice () {
 	restore_tty
 }
 
-set_defaults
-set_fancy_output
-handle_args "$@"
-check_input
-CHOICES=$(grep -v '^$') # get standard input without blank lines
-CHOICES_COUNT=$(count_lines "$CHOICES")
-if [ $CHOICES_COUNT -le 1 ] ; then # no choice
-	$QUIET || ${MODE}_list >&2
-	N=1
-else
-	${MODE}_list >&2
-	${MODE}_choice >&2 </proc/$PPID/fd/0 # get terminal input
-fi
+{ # main
+	set_defaults
+	set_fancy_output
+	handle_args "$@"
+	check_input
+	CHOICES=$(grep -v '^$') # get standard input without blank lines
+	CHOICES_COUNT=$(count_lines "$CHOICES")
+	if [ $CHOICES_COUNT -le 1 ] ; then # no choice
+		$QUIET || ${MODE}_list
+		N=1
+	else
+		${MODE}_list
+		${MODE}_choice </proc/$PPID/fd/0 # get terminal input
+	fi
+} >&2
 echo "$CHOICES" | sed -n ${N}p # return chosen line on standard output
