@@ -1,5 +1,8 @@
+choose: a shell menu
+====================
+
 Description
-===========
+-----------
 
 _choose_ is a shell script which allows an interactive choice on stderr among lines from stdin and returns the result on stdout.
 
@@ -9,19 +12,20 @@ _choose_ is a shell script which allows an interactive choice on stderr among li
 
 It is nearly the same goal as the shell builtin _select_ with fancy I/O more.
 
+
 Usage
-=====
+-----
 
-In cursor mode (the default), the keys UP, DOWN and ENTER are used.
+* In cursor mode (the default), the keys UP, DOWN and ENTER are used.
 
-In numerated mode, a number matching a list item must be entered.
+* In numerated mode, a number matching a list item must be entered.
 
 
 Example
-=======
+-------
 
-# answer = $(echo "yes\nno" | choose)
-=>  yes
-    no
-# echo $answer
-yes
+    # answer = $(echo "yes\nno" | choose)
+    =>  yes
+        no
+    # echo $answer
+    yes
