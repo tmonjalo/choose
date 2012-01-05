@@ -152,6 +152,13 @@ cursor_move_down () {
 	fi
 }
 
+truncate () { # <width>
+	while read LINE ; do
+		# fold count the tab space unlike cut
+		printf "$LINE\n" | fold -w$1 | head -n1
+	done
+}
+
 default_arrow_filter () { # < lines
 	if [ -n "$DEFAULT" ] ; then
 		sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
@@ -171,7 +178,8 @@ numerated_list () {
 }
 
 cursor_list () {
-	echo "$LINES" | sed "s,^,$INDENT,"
+	WIDTH=$(stty size | cut -d' ' -f2)
+	echo "$LINES" | truncate $((WIDTH - ${#INDENT})) | sed "s,^,$INDENT,"
 }
 
 numerated_choice () { # < user input
@@ -212,9 +220,10 @@ cursor_choice () { # < user input
 	if [ $COUNT -le 1 ] ; then # no choice
 		$QUIET || ${MODE}_list
 		N=1
-	else
+	else {
 		${MODE}_list
-		${MODE}_choice </proc/$PPID/fd/0 # get terminal input
+		${MODE}_choice
+	} </proc/$PPID/fd/0 # get terminal input
 	fi
 } >&2
 echo "$LINES" | sed -n ${N}p # return chosen line on standard output
