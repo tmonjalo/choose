@@ -140,7 +140,7 @@ cursor_move_up () {
 	if [ $N -gt 1 ] ; then
 		cursor_erase
 		printf '[A' # go to upper line
-		: $((N --))
+		N=$((N - 1))
 		cursor_draw
 	fi
 }
@@ -149,7 +149,7 @@ cursor_move_down () {
 	if [ $N -lt $COUNT ] ; then
 		cursor_erase
 		printf '[B' # go to lower line
-		: $((N ++))
+		N=$((N + 1))
 		cursor_draw
 	fi
 }
