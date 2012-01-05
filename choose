@@ -1,4 +1,5 @@
 #! /bin/sh -e
+# by Thomas Monjalon
 
 print_help () {
 	cat <<- END_OF_HELP
@@ -42,8 +43,7 @@ handle_args () {
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
 			q ) QUIET=true ;;
-			h ) print_help
-				exit 0 ;;
+			h ) print_help ; exit 0 ;;
 		esac
 	done
 	shift $((OPTIND - 1))
@@ -118,7 +118,7 @@ set_fancy_output () {
 
 cursor_begin () {
 	printf '[s' # save position
-	printf "[$((CHOICES_COUNT - N + 1))A" # go up to current line
+	printf "[$((COUNT - N + 1))A" # go up to current line
 }
 
 cursor_end () {
@@ -146,7 +146,7 @@ cursor_move_up () {
 }
 
 cursor_move_down () {
-	if [ $N -lt $CHOICES_COUNT ] ; then
+	if [ $N -lt $COUNT ] ; then
 		cursor_erase
 		printf '[B' # go to lower line
 		: $((N ++))
@@ -164,16 +164,16 @@ default_arrow_filter () {
 
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
-		echo "$CHOICES" | sed -n "/^$DEFAULT$/="
+		echo "$LINES" | sed -n "/^$DEFAULT$/="
 	fi
 }
 
 numerated_list () {
-	echo "$CHOICES" | cat -n | default_arrow_filter
+	echo "$LINES" | cat -n | default_arrow_filter
 }
 
 cursor_list () {
-	echo "$CHOICES" | sed 's,^,    ,'
+	echo "$LINES" | sed 's,^,    ,'
 }
 
 numerated_choice () {
@@ -181,7 +181,7 @@ numerated_choice () {
 		printf "> "
 		read N
 		isdigit "$N" || N=0 # fallback to invalid choice
-		[ $N -lt 1 -o $CHOICES_COUNT -lt $N ] || break
+		[ $N -lt 1 -o $COUNT -lt $N ] || break
 	done
 }
 
@@ -209,9 +209,9 @@ cursor_choice () {
 	set_fancy_output
 	handle_args "$@"
 	check_input
-	CHOICES=$(grep -v '^$') # get standard input without blank lines
-	CHOICES_COUNT=$(count_lines "$CHOICES")
-	if [ $CHOICES_COUNT -le 1 ] ; then # no choice
+	LINES=$(grep -v '^$') # get standard input without blank lines
+	COUNT=$(count_lines "$LINES")
+	if [ $COUNT -le 1 ] ; then # no choice
 		$QUIET || ${MODE}_list
 		N=1
 	else
@@ -219,4 +219,4 @@ cursor_choice () {
 		${MODE}_choice </proc/$PPID/fd/0 # get terminal input
 	fi
 } >&2
-echo "$CHOICES" | sed -n ${N}p # return chosen line on standard output
+echo "$LINES" | sed -n ${N}p # return chosen line on standard output
