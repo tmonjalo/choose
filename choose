@@ -33,6 +33,8 @@ set_defaults () {
 	MODE=cursor
 	QUIET=false
 	N=0
+	INDENT='    '
+	ARROW='=>'
 }
 
 handle_args () {
@@ -127,12 +129,12 @@ cursor_end () {
 
 cursor_erase () {
 	cursor_begin
-	printf '  '
+	printf $ARROW | sed 's,., ,g'
 	printf '[2D' # go to beginning of line
 }
 
 cursor_draw () {
-	printf '=>'
+	printf $ARROW
 	cursor_end
 }
 
@@ -156,7 +158,7 @@ cursor_move_down () {
 
 default_arrow_filter () {
 	if [ -n "$DEFAULT" ] ; then
-		sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,=>\1,"
+		sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
 	else
 		cat
 	fi
@@ -173,7 +175,7 @@ numerated_list () {
 }
 
 cursor_list () {
-	echo "$LINES" | sed 's,^,    ,'
+	echo "$LINES" | sed "s,^,$INDENT,"
 }
 
 numerated_choice () {
