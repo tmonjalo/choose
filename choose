@@ -23,7 +23,7 @@ print_usage () {
 	END_OF_USAGE
 }
 
-alert () {
+alert () { # <comment>
 	echo $SELF: "$@"
 	exit 1
 }
@@ -37,7 +37,7 @@ set_defaults () {
 	ARROW='=>'
 }
 
-handle_args () {
+handle_args () { # <arguments>
 	local ARG
 	SELF=$(basename $0)
 	while getopts cnqh ARG ; do
@@ -67,14 +67,14 @@ is_redirected () {
 	test ! -t 2
 }
 
-isdigit () {
+isdigit () { # <string>
 	test $# -eq 1
 	case $1 in
 		*[!0-9]* | '') false ;;
 	esac
 }
 
-code2hex () {
+code2hex () { # < bytes
 	od -t x1 | head -n1 | cut -d' ' -f2- | tr -d ' '
 }
 
@@ -152,7 +152,7 @@ cursor_move_down () {
 	fi
 }
 
-default_arrow_filter () {
+default_arrow_filter () { # < lines
 	if [ -n "$DEFAULT" ] ; then
 		sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
 	else
@@ -174,7 +174,7 @@ cursor_list () {
 	echo "$LINES" | sed "s,^,$INDENT,"
 }
 
-numerated_choice () {
+numerated_choice () { # < user input
 	while : ; do
 		printf "> "
 		read N
@@ -183,7 +183,7 @@ numerated_choice () {
 	done
 }
 
-cursor_choice () {
+cursor_choice () { # < user input
 	get_key_codes
 	configure_tty
 	N=$(get_default_index)
