@@ -108,25 +108,25 @@ set_fancy_output () {
 	if is_redirected ; then
 		unset R B U
 	else
-		R='[0m'
-		B='[1m'
-		U='[4m'
+		R=$(printf '\033[0m')
+		B=$(printf '\033[1m')
+		U=$(printf '\033[4m')
 	fi
 }
 
 cursor_begin () {
-	printf '[s' # save position
-	printf "[$((COUNT - N + 1))A" # go up to current line
+	printf '\033[s' # save position
+	printf "\033[$((COUNT - N + 1))A" # go up to current line
 }
 
 cursor_end () {
-	printf '[u' # restore position at the bottom
+	printf '\033[u' # restore position at the bottom
 }
 
 cursor_erase () {
 	cursor_begin
 	printf $ARROW | sed 's,., ,g'
-	printf '[2D' # go to beginning of line
+	printf '\033[2D' # go to beginning of line
 }
 
 cursor_draw () {
@@ -137,7 +137,7 @@ cursor_draw () {
 cursor_move_up () {
 	if [ $N -gt 1 ] ; then
 		cursor_erase
-		printf '[A' # go to upper line
+		printf '\033[A' # go to upper line
 		N=$((N - 1))
 		cursor_draw
 	fi
@@ -146,7 +146,7 @@ cursor_move_up () {
 cursor_move_down () {
 	if [ $N -lt $COUNT ] ; then
 		cursor_erase
-		printf '[B' # go to lower line
+		printf '\033[B' # go to lower line
 		N=$((N + 1))
 		cursor_draw
 	fi
