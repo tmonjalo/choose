@@ -24,7 +24,7 @@ Usage
 Example
 -------
 
-    # answer = $(echo "yes\nno" | choose)
+    # answer=$(echo "yes\nno" | choose)
     =>  yes
         no
     # echo $answer
