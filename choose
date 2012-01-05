@@ -67,10 +67,6 @@ is_redirected () {
 	test ! -t 2
 }
 
-count_lines () {
-	echo "$@" | grep -v '^$' | wc -l
-}
-
 isdigit () {
 	test $# -eq 1
 	case $1 in
@@ -212,7 +208,7 @@ cursor_choice () {
 	handle_args "$@"
 	check_input
 	LINES=$(grep -v '^$') # get standard input without blank lines
-	COUNT=$(count_lines "$LINES")
+	COUNT=$(echo "$LINES" | wc -l)
 	if [ $COUNT -le 1 ] ; then # no choice
 		$QUIET || ${MODE}_list
 		N=1
