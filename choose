@@ -18,7 +18,6 @@ print_usage () {
 		options:
 		         ${B}-c$R   cursor mode (default)
 		         ${B}-n$R   numerated mode
-		         ${B}-q$R   quiet if only one choice
 		         ${B}-h$R   help
 	END_OF_USAGE
 }
@@ -31,7 +30,6 @@ alert () { # <comment>
 set_defaults () {
 	unset DEFAULT
 	MODE=cursor
-	QUIET=false
 	N=0
 	INDENT='    '
 	ARROW='=>'
@@ -44,7 +42,6 @@ handle_args () { # <arguments>
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
-			q ) QUIET=true ;;
 			h ) print_help ; exit 0 ;;
 		esac
 	done
@@ -134,6 +131,11 @@ cursor_draw () {
 	cursor_end
 }
 
+cursor_init () {
+	cursor_begin
+	cursor_draw
+}
+
 cursor_move_up () {
 	if [ $N -gt 1 ] ; then
 		cursor_erase
@@ -180,6 +182,10 @@ numerated_list () {
 cursor_list () {
 	WIDTH=$(stty size | cut -d' ' -f2)
 	echo "$LINES" | truncate $((WIDTH - ${#INDENT})) | sed "s,^,$INDENT,"
+	N=$(get_default_index)
+	isdigit "$N" || N=1 # fallback to first choice
+	configure_tty
+	cursor_init
 }
 
 numerated_choice () { # < user input
@@ -193,11 +199,6 @@ numerated_choice () { # < user input
 
 cursor_choice () { # < user input
 	get_key_codes
-	configure_tty
-	N=$(get_default_index)
-	isdigit "$N" || N=1 # fallback to first choice
-	cursor_begin
-	cursor_draw
 	local KEY
 	while : ; do
 		KEY=$(dd bs=4 count=1 2>&- | code2hex)
@@ -207,6 +208,13 @@ cursor_choice () { # < user input
 			"$TTY_CUD1" | "$TTY_KCUD1" | "$TTY_CUDX" ) cursor_move_down ;;
 		esac
 	done
+}
+
+numerated_clean () {
+	:
+}
+
+cursor_clean () {
 	restore_tty
 }
 
@@ -217,13 +225,14 @@ cursor_choice () { # < user input
 	check_input
 	LINES=$(grep -v '^$') # get standard input without blank lines
 	COUNT=$(echo "$LINES" | wc -l)
-	if [ $COUNT -le 1 ] ; then # no choice
-		$QUIET || ${MODE}_list
-		N=1
-	else {
+	{
 		${MODE}_list
-		${MODE}_choice
+		if [ $COUNT -le 1 ] ; then
+			N=1 # no choice
+		else
+			${MODE}_choice
+		fi
+		${MODE}_clean
 	} </proc/$PPID/fd/0 # get terminal input
-	fi
 } >&2
 echo "$LINES" | sed -n ${N}p # return chosen line on standard output
