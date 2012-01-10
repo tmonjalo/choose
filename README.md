@@ -16,6 +16,8 @@ It is nearly the same goal as the shell builtin _select_ with fancy I/O more.
 Usage
 -----
 
+A choice can be preselected as parameter. In cursor mode, it falls back to the first line if there is no default choice.
+
 * In cursor mode (the default), the keys UP, DOWN and ENTER are used.
 
 * In numerated mode, a number matching a list item must be entered.
