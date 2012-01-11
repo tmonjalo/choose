@@ -13,12 +13,14 @@ print_help () {
 print_usage () {
 	cat <<- END_OF_USAGE
 		usages:
-		         command_which_print_choices | $B$SELF$R [${U}options$R] [${U}default choice$R]
-		         $B$SELF$R [${U}options$R] [${U}default choice$R] < file_of_choices
+		         command_which_print_choices | $B$SELF$S [${U}options$S] [${U}default choice$S]
+		         $B$SELF$S [${U}options$S] [${U}default choice$S] < file_of_choices
 		options:
-		         ${B}-c$R   cursor mode (default)
-		         ${B}-n$R   numerated mode
-		         ${B}-h$R   help
+		         ${B}-c$S   cursor mode (default)
+		         ${B}-n$S   numerated mode
+		         ${B}-r$S   reversed theme (default)
+		         ${B}-a$S   arrow theme
+		         ${B}-h$S   help
 	END_OF_USAGE
 }
 
@@ -30,6 +32,7 @@ alert () { # <comment>
 set_defaults () {
 	unset DEFAULT
 	MODE=cursor
+	THEME=reversed
 	N=0
 	INDENT='    '
 	ARROW='=>'
@@ -38,10 +41,12 @@ set_defaults () {
 handle_args () { # <arguments>
 	local ARG
 	SELF=$(basename $0)
-	while getopts cnqh ARG ; do
+	while getopts cnrah ARG ; do
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
+			r ) THEME=reversed ;;
+			a ) THEME=arrow ;;
 			h ) print_help ; exit 0 ;;
 		esac
 	done
@@ -103,11 +108,12 @@ restore_tty () {
 
 set_fancy_output () {
 	if is_redirected ; then
-		unset R B U
+		unset S B U R
 	else
-		R=$(printf '\033[0m')
-		B=$(printf '\033[1m')
-		U=$(printf '\033[4m')
+		S=$(printf '\033[0m') # standard
+		B=$(printf '\033[1m') # bold
+		U=$(printf '\033[4m') # underlined
+		R=$(printf '\033[7m') # reversed
 	fi
 }
 
@@ -116,18 +122,30 @@ cursor_begin () {
 	printf "\033[$((COUNT - N + 1))A" # go up to current line
 }
 
+cursor_home () {
+	printf "\033[${WIDTH}D" # go to beginning of line
+}
+
 cursor_end () {
 	printf '\033[u' # restore position at the bottom
 }
 
 cursor_erase () {
 	cursor_begin
-	printf $ARROW | sed 's,., ,g'
-	printf '\033[2D' # go to beginning of line
+	if [ $THEME = reversed ] ; then
+		printf "$(echo "$LINES" | sed -n ${N}p | filter_line)"
+	else
+		printf $ARROW | sed 's,., ,g'
+	fi
+	cursor_home
 }
 
 cursor_draw () {
-	printf $ARROW
+	if [ $THEME = reversed ] ; then
+		printf "$(echo "$LINES" | sed -n ${N}p | filter_reversed_line)"
+	else
+		printf $ARROW
+	fi
 	cursor_end
 }
 
@@ -161,9 +179,21 @@ truncate () { # <width>
 	done
 }
 
-default_arrow_filter () { # < lines
+filter_line () { # < lines
+	truncate $((WIDTH - ${#INDENT})) | sed "s,^,$INDENT,"
+}
+
+filter_reversed_line () { # < lines
+	truncate $((WIDTH - ${#INDENT})) | sed "s,\(.*\),$INDENT$R\1$S,"
+}
+
+filter_default () { # < lines
 	if [ -n "$DEFAULT" ] ; then
-		sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
+		if [ $THEME = reversed ] ; then
+			sed "s,^\( *[0-9]*[	 ]*\)\($DEFAULT\)$,\1$R\2$S,"
+		else
+			sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
+		fi
 	else
 		cat
 	fi
@@ -176,12 +206,12 @@ get_default_index () {
 }
 
 numerated_list () {
-	echo "$LINES" | cat -n | default_arrow_filter
+	echo "$LINES" | cat -n | filter_default
 }
 
 cursor_list () {
 	WIDTH=$(stty size | cut -d' ' -f2)
-	echo "$LINES" | truncate $((WIDTH - ${#INDENT})) | sed "s,^,$INDENT,"
+	echo "$LINES" | filter_line
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
 	configure_tty

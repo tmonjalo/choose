@@ -26,7 +26,7 @@ A choice can be preselected as parameter. In cursor mode, it falls back to the f
 Example
 -------
 
-    # answer=$(echo "yes\nno" | choose)
+    # answer=$(echo "yes\nno" | choose -a)
     =>  yes
         no
     # echo $answer
