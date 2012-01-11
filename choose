@@ -201,7 +201,7 @@ filter_default () { # < lines
 
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
-		echo "$LINES" | sed -n "/^$DEFAULT$/="
+		echo "$LINES" | sed -n "/^$DEFAULT$/=" | head -n1
 	fi
 }
 
@@ -222,6 +222,7 @@ numerated_choice () { # < user input
 	while : ; do
 		printf "> "
 		read N
+		test -n "$N" || N=$(get_default_index) # ENTER = default choice
 		isdigit "$N" || N=0 # fallback to invalid choice
 		[ $N -lt 1 -o $COUNT -lt $N ] || break
 	done

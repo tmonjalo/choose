@@ -18,9 +18,11 @@ Usage
 
 A choice can be preselected as parameter. In cursor mode, it falls back to the first line if there is no default choice.
 
-* In cursor mode (the default), the keys UP, DOWN and ENTER are used.
+When the key ENTER is pressed, the selected choice is validated.
 
-* In numerated mode, a number matching a list item must be entered.
+* In cursor mode (the default), the selection can be moved with the keys UP and DOWN.
+
+* In numerated mode, a number matching a list item can be entered.
 
 
 Example
