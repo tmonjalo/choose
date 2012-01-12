@@ -133,7 +133,7 @@ cursor_end () {
 cursor_erase () {
 	cursor_begin
 	if [ $THEME = reversed ] ; then
-		printf "$(echo "$LINES" | sed -n ${N}p | filter_line)"
+		printf "$(print_current_line | format_simple)"
 	else
 		printf $ARROW | sed 's,., ,g'
 	fi
@@ -142,7 +142,7 @@ cursor_erase () {
 
 cursor_draw () {
 	if [ $THEME = reversed ] ; then
-		printf "$(echo "$LINES" | sed -n ${N}p | filter_reversed_line)"
+		printf "$(print_current_line | format_$THEME)"
 	else
 		printf $ARROW
 	fi
@@ -179,11 +179,15 @@ truncate () { # <width>
 	done
 }
 
-filter_line () { # < lines
+format_simple () { # < lines
 	truncate $((WIDTH - ${#INDENT})) | sed "s,^,$INDENT,"
 }
 
-filter_reversed_line () { # < lines
+format_arrow () { # < lines
+	format_simple | sed "s,^..,$ARROW,"
+}
+
+format_reversed () { # < lines
 	truncate $((WIDTH - ${#INDENT})) | sed "s,\(.*\),$INDENT$R\1$S,"
 }
 
@@ -205,13 +209,17 @@ get_default_index () {
 	fi
 }
 
+print_current_line () {
+	echo "$LINES" | sed -n ${N}p
+}
+
 numerated_list () {
 	echo "$LINES" | cat -n | filter_default
 }
 
 cursor_list () {
 	WIDTH=$(stty size | cut -d' ' -f2)
-	echo "$LINES" | filter_line
+	echo "$LINES" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
 	configure_tty
@@ -266,4 +274,4 @@ cursor_clean () {
 		${MODE}_clean
 	} </proc/$PPID/fd/0 # get terminal input
 } >&2
-echo "$LINES" | sed -n ${N}p # return chosen line on standard output
+print_current_line # return chosen line on standard output
