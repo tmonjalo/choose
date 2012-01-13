@@ -36,6 +36,7 @@ set_defaults () {
 	N=0
 	INDENT='    '
 	ARROW='=>'
+	unset TTY_SAVE
 }
 
 handle_args () { # <arguments>
@@ -98,12 +99,11 @@ get_key_codes () {
 
 configure_tty () {
 	TTY_SAVE=$(stty -g)
-	trap 'restore_tty ; exit 1' INT QUIT TERM
 	stty cs8 -icanon -echo
 }
 
 restore_tty () {
-	stty $TTY_SAVE >&- 2>&-
+	test -z "$TTY_SAVE" || stty $TTY_SAVE >&- 2>&-
 }
 
 set_fancy_output () {
@@ -249,12 +249,12 @@ cursor_choice () { # < user input
 	done
 }
 
-numerated_clean () {
-	:
+clean () {
+	restore_tty
 }
 
-cursor_clean () {
-	restore_tty
+set_exit_handler () {
+	trap "clean ; exit 1" INT QUIT TERM
 }
 
 { # main
@@ -264,6 +264,7 @@ cursor_clean () {
 	check_input
 	LINES=$(grep -v '^$') # get standard input without blank lines
 	COUNT=$(echo "$LINES" | wc -l)
+	set_exit_handler
 	{
 		${MODE}_list
 		if [ $COUNT -le 1 ] ; then
@@ -271,7 +272,7 @@ cursor_clean () {
 		else
 			${MODE}_choice
 		fi
-		${MODE}_clean
+		clean
 	} </proc/$PPID/fd/0 # get terminal input
 } >&2
 print_current_line # return chosen line on standard output
