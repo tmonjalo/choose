@@ -18,8 +18,8 @@ print_usage () {
 		options:
 		         ${B}-c$S   cursor mode (default)
 		         ${B}-n$S   numerated mode
-		         ${B}-r$S   reversed theme (default)
-		         ${B}-a$S   arrow theme
+		         ${B}-r$S   reversed style (default)
+		         ${B}-a$S   arrow style
 		         ${B}-q$S   quiet = clean all on exit
 		         ${B}-v$S   verbose = keep menu on exit
 		         ${B}-h$S   help
@@ -34,7 +34,7 @@ alert () { # <comment>
 set_defaults () {
 	unset DEFAULT
 	MODE=cursor
-	THEME=reversed
+	STYLE=reversed
 	CLEAN=keepchoice
 	N=0
 	INDENT='    '
@@ -49,8 +49,8 @@ handle_args () { # <arguments>
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
-			r ) THEME=reversed ;;
-			a ) THEME=arrow ;;
+			r ) STYLE=reversed ;;
+			a ) STYLE=arrow ;;
 			q ) CLEAN=all ;;
 			v ) CLEAN=none ;;
 			h ) print_help ; exit 0 ;;
@@ -137,7 +137,7 @@ cursor_end () {
 
 cursor_erase () {
 	cursor_begin
-	if [ $THEME = arrow ] ; then
+	if [ $STYLE = arrow ] ; then
 		printf $ARROW | sed 's,., ,g'
 	else
 		printf "$(print_current_line | format_simple)"
@@ -146,10 +146,10 @@ cursor_erase () {
 }
 
 cursor_draw () {
-	if [ $THEME = arrow ] ; then
+	if [ $STYLE = arrow ] ; then
 		printf $ARROW
 	else
-		printf "$(print_current_line | format_$THEME)"
+		printf "$(print_current_line | format_$STYLE)"
 	fi
 	cursor_end
 }
@@ -180,7 +180,7 @@ cursor_move_down () {
 clean_menu () {
 	printf "\033[${CLEAN_COUNT}A" # go to first line
 	printf '\033[J' # clean lines from this point
-	[ $CLEAN = all ] || print_current_line | format_$THEME
+	[ $CLEAN = all ] || print_current_line | format_$STYLE
 }
 
 truncate () { # <width>
@@ -204,7 +204,7 @@ format_reversed () { # < lines
 
 filter_default () { # < lines
 	if [ -n "$DEFAULT" ] ; then
-		if [ $THEME = arrow ] ; then
+		if [ $STYLE = arrow ] ; then
 			sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
 		else
 			sed "s,^\( *[0-9]*[	 ]*\)\($DEFAULT\)$,\1$R\2$S,"

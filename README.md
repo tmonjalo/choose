@@ -24,6 +24,8 @@ When the key ENTER is pressed, the selected choice is validated.
 
 * In numerated mode, a number matching a list item can be entered.
 
+There are 2 styles for the selected line. It can be shown with an arrow or in a reversed font.
+
 When the choice is done, the menu can disappeared (quiet option), be replaced by the chosen line (default), or be kept as is (verbose option).
 
 If you don't want it tampers your TTY with alternative settings and special characters, use _-nav_ options (numerated mode with arrow and keep verbose). It disables all "advanced" features.
