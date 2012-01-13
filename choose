@@ -20,6 +20,8 @@ print_usage () {
 		         ${B}-n$S   numerated mode
 		         ${B}-r$S   reversed theme (default)
 		         ${B}-a$S   arrow theme
+		         ${B}-q$S   quiet = clean all on exit
+		         ${B}-v$S   verbose = keep menu on exit
 		         ${B}-h$S   help
 	END_OF_USAGE
 }
@@ -33,6 +35,7 @@ set_defaults () {
 	unset DEFAULT
 	MODE=cursor
 	THEME=reversed
+	CLEAN=keepchoice
 	N=0
 	INDENT='    '
 	ARROW='=>'
@@ -42,12 +45,14 @@ set_defaults () {
 handle_args () { # <arguments>
 	local ARG
 	SELF=$(basename $0)
-	while getopts cnrah ARG ; do
+	while getopts cnraqvh ARG ; do
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
 			r ) THEME=reversed ;;
 			a ) THEME=arrow ;;
+			q ) CLEAN=all ;;
+			v ) CLEAN=none ;;
 			h ) print_help ; exit 0 ;;
 		esac
 	done
@@ -172,6 +177,12 @@ cursor_move_down () {
 	fi
 }
 
+clean_menu () {
+	printf "\033[${CLEAN_COUNT}A" # go to first line
+	printf '\033[J' # clean lines from this point
+	[ $CLEAN = all ] || print_current_line | format_$THEME
+}
+
 truncate () { # <width>
 	while read LINE ; do
 		# fold count the tab space unlike cut
@@ -227,9 +238,11 @@ cursor_list () {
 }
 
 numerated_choice () { # < user input
+	WIDTH=1000 # arbitrary
 	while : ; do
 		printf "> "
 		read N
+		CLEAN_COUNT=$((CLEAN_COUNT + 1))
 		test -n "$N" || N=$(get_default_index) # ENTER = default choice
 		isdigit "$N" || N=0 # fallback to invalid choice
 		[ $N -lt 1 -o $COUNT -lt $N ] || break
@@ -250,6 +263,7 @@ cursor_choice () { # < user input
 }
 
 clean () {
+	[ $CLEAN = none ] || clean_menu
 	restore_tty
 }
 
@@ -264,6 +278,7 @@ set_exit_handler () {
 	check_input
 	LINES=$(grep -v '^$') # get standard input without blank lines
 	COUNT=$(echo "$LINES" | wc -l)
+	CLEAN_COUNT=$COUNT
 	set_exit_handler
 	{
 		${MODE}_list

@@ -24,11 +24,15 @@ When the key ENTER is pressed, the selected choice is validated.
 
 * In numerated mode, a number matching a list item can be entered.
 
+When the choice is done, the menu can disappeared (quiet option), be replaced by the chosen line (default), or be kept as is (verbose option).
+
+If you don't want it tampers your TTY with alternative settings and special characters, use _-nav_ options (numerated mode with arrow and keep verbose). It disables all "advanced" features.
+
 
 Example
 -------
 
-    # answer=$(echo "yes\nno" | choose -a)
+    # answer=$(echo "yes\nno" | choose -av)
     =>  yes
         no
     # echo $answer
