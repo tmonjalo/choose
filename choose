@@ -132,19 +132,19 @@ cursor_end () {
 
 cursor_erase () {
 	cursor_begin
-	if [ $THEME = reversed ] ; then
-		printf "$(print_current_line | format_simple)"
-	else
+	if [ $THEME = arrow ] ; then
 		printf $ARROW | sed 's,., ,g'
+	else
+		printf "$(print_current_line | format_simple)"
 	fi
 	cursor_home
 }
 
 cursor_draw () {
-	if [ $THEME = reversed ] ; then
-		printf "$(print_current_line | format_$THEME)"
-	else
+	if [ $THEME = arrow ] ; then
 		printf $ARROW
+	else
+		printf "$(print_current_line | format_$THEME)"
 	fi
 	cursor_end
 }
@@ -193,10 +193,10 @@ format_reversed () { # < lines
 
 filter_default () { # < lines
 	if [ -n "$DEFAULT" ] ; then
-		if [ $THEME = reversed ] ; then
-			sed "s,^\( *[0-9]*[	 ]*\)\($DEFAULT\)$,\1$R\2$S,"
-		else
+		if [ $THEME = arrow ] ; then
 			sed "s,^..\( *[0-9]*[	 ]*$DEFAULT\)$,$ARROW\1,"
+		else
+			sed "s,^\( *[0-9]*[	 ]*\)\($DEFAULT\)$,\1$R\2$S,"
 		fi
 	else
 		cat
