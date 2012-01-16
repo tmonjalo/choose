@@ -262,13 +262,13 @@ cursor_choice () { # < user input
 	done
 }
 
-clean () {
-	[ $CLEAN = none ] || clean_menu
+clean () { # [override clean mode]
+	[ $CLEAN = none ] || CLEAN=${1:-$CLEAN} clean_menu
 	restore_tty
 }
 
 set_exit_handler () {
-	trap "clean ; exit 1" INT QUIT TERM
+	trap "clean all ; exit 1" INT QUIT TERM
 }
 
 { # main
