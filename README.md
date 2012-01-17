@@ -39,3 +39,17 @@ Example
         no
     # echo $answer
     yes
+
+
+Bugs
+----
+
+* In cursor mode, long lines with non printable characters are smaller than the terminal width.
+
+* The cursor in reversed style doesn't truncate line to correct width after a terminal reduction.
+
+* The cleanup in numerated mode erase not enough lines if there are choices on multiple lines.
+
+* The choice printed during the cleanup in numerated mode is truncated to 1000 characters.
+
+* Long lists with more lines than the terminal height are only supported in numerated verbose mode.
