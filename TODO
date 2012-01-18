@@ -1,5 +1,7 @@
 fix bugs listed in README.md
 
+columns for long list of short lines (disabled by option -1)
+
 man page
 
 test scripts
