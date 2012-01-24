@@ -268,7 +268,7 @@ clean () { # [override clean mode]
 }
 
 set_exit_handler () {
-	trap "clean all ; exit 1" INT QUIT TERM
+	trap "clean all ; exit 2" INT QUIT TERM
 }
 
 { # main
