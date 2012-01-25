@@ -1,0 +1,102 @@
+.TH CHOOSE 1 2012-01-23 "" "User Commands"
+
+.SH NAME
+choose \- a shell menu
+
+.SH SYNOPSIS
+command_which_print_choices |
+.B choose
+.RI [ options ]
+.RI [ default_choice ]
+
+.B choose
+.RI [ options ]
+.RI [ default_choice ]
+< file_of_choices
+
+.SH DESCRIPTION
+.B choose
+allows an interactive choice on stderr among lines from stdin and returns the result on stdout.
+
+            multiple lines            menu             one line
+                           --->      choose      --->
+                   stdin       TTY input / stderr       stdout
+
+It is nearly the same goal as the shell builtin
+.B select
+with fancy I/O more.
+
+If there are many choices, the selected line is validated when the key ENTER is pressed.
+
+The optional argument
+.I default_choice
+can preselect a line.
+In cursor mode, it falls back to the first line if there is no matching default.
+
+.SH OPTIONS
+.TP
+.B -h
+help
+.P
+The different input behaviours are called modes.
+.TP
+.B -c
+cursor mode (default)
+.br
+The selection can be moved with the keys UP and DOWN.
+.TP
+.B -n
+numerated mode
+.br
+A number matching a list item can be entered.
+.P
+There are 2 styles for the selected line. It can be shown with an arrow or in a reversed font.
+.TP
+.B -r
+reversed style (default)
+.TP
+.B -a
+arrow style
+.P
+When the choice is done, the menu can disappeared (quiet), be replaced by the chosen line (default), or be kept as is (verbose).
+.TP
+.B -q
+quiet = clean all on exit
+.TP
+.B -v
+verbose = keep menu on exit
+.P
+If you don't want it tampers your TTY with alternative settings and special characters, use
+.RI - nav
+options (numerated mode with arrow and keep verbose). It disables all "advanced" features.
+
+.SH EXIT STATUS
+.TP
+.B 0
+Successful execution
+.TP
+.B 1
+Syntax error
+.TP
+.B 2
+Interrupted by a signal
+
+.SH BUGS
+\(bu In cursor mode, long lines with non printable characters are smaller than the terminal width.
+
+\(bu The cursor in reversed style doesn't truncate line to correct width after a terminal reduction.
+
+\(bu The cleanup in numerated mode erase not enough lines if there are choices on multiple lines.
+
+\(bu The choice printed during the cleanup in numerated mode is truncated to 1000 characters.
+
+\(bu Long lists with more lines than the terminal height are only supported in numerated verbose mode.
+
+.SH EXAMPLE
+.nf \f(CW
+# answer=$(echo "yes\enno" | choose -av)
+=>  yes
+    no
+# echo $answer
+yes
+.fi
