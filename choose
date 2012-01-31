@@ -179,6 +179,7 @@ cursor_move_down () {
 
 clean_menu () {
 	printf "\033[${CLEAN_COUNT}A" # go to first line
+	cursor_home
 	printf '\033[J' # clean lines from this point
 	[ $CLEAN = all ] || print_current_line | format_$STYLE
 }
