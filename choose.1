@@ -4,23 +4,32 @@
 choose \- a shell menu
 
 .SH SYNOPSIS
-command_which_print_choices |
+
 .B choose
 .RI [ options ]
-.RI [ default_choice ]
+.RI < default_choice >
+<choice_1> [choice_2] ...
 
 .B choose
 .RI [ options ]
 .RI [ default_choice ]
 < file_of_choices
 
-.SH DESCRIPTION
+command_which_print_choices |
 .B choose
-allows an interactive choice on stderr among lines from stdin and returns the result on stdout.
+.RI [ options ]
+.RI [ default_choice ]
 
-            multiple lines            menu             one line
+Input choices can be arguments starting at the second one, a file with a choice per line, or lines from a piped command.
+
+.SH DESCRIPTION
+
+.B choose
+allows an interactive choice on stderr among lines from stdin (or arguments) and returns the result on stdout.
+
+            multiple lines            menu            one line
                            --->      choose      --->
-                   stdin       TTY input / stderr       stdout
+             args / stdin      TTY input / stderr      stdout
 
 It is nearly the same goal as the shell builtin
 .B select
@@ -82,6 +91,7 @@ Syntax error
 Interrupted by a signal
 
 .SH BUGS
+
 \(bu In cursor mode, long lines with non printable characters are smaller than the terminal width.
 
 \(bu The cursor in reversed style doesn't truncate line to correct width after a terminal reduction.
@@ -94,7 +104,7 @@ Interrupted by a signal
 
 .SH EXAMPLE
 .nf \f(CW
-# answer=$(echo "yes\enno" | choose -av)
+# answer=$(choose -av '' yes no)
 =>  yes
     no
 # echo $answer

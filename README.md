@@ -4,11 +4,11 @@ choose: a shell menu
 Description
 -----------
 
-_choose_ is a shell script which allows an interactive choice on stderr among lines from stdin and returns the result on stdout.
+_choose_ is a shell script which allows an interactive choice on stderr among lines from stdin (or arguments) and returns the result on stdout.
 
-    multiple lines         menu          one line
-                   --->   choose   --->
-          stdin     TTY input / stderr     stdout
+            multiple lines            menu            one line
+                           --->      choose      --->
+             args / stdin      TTY input / stderr      stdout
 
 It is nearly the same goal as the shell builtin _select_ with fancy I/O more.
 
@@ -16,7 +16,7 @@ It is nearly the same goal as the shell builtin _select_ with fancy I/O more.
 Usage
 -----
 
-A choice can be preselected as parameter. In cursor mode, it falls back to the first line if there is no default choice.
+A choice can be preselected as first argument. In cursor mode, it falls back to the first line if there is no default choice.
 
 When the key ENTER is pressed, the selected choice is validated.
 
@@ -34,7 +34,7 @@ If you don't want it tampers your TTY with alternative settings and special char
 Example
 -------
 
-    # answer=$(echo "yes\nno" | choose -av)
+    # answer=$(choose -av '' yes no)
     =>  yes
         no
     # echo $answer
@@ -62,7 +62,7 @@ It should need no special tool to run. Indeed all requirements are standard and 
 
 _choose_ runs with _/bin/sh_ which can be any POSIX shell (_ash_, _bash_, _dash_, _ksh_, _zsh_...).
 
-It uses many basic tools from _coreutils_ (_basename_, _cat_, _head_, _cut_, _tr_, _fold_, _od_, _dd_, _wc_, _stty_), _ncurses_ (_tput_) and _sed_.
+It uses many basic tools from _coreutils_ (_basename_, _cat_, _head_, _cut_, _tr_, _fold_, _od_, _dd_, _seq_, _wc_, _stty_), _ncurses_ (_tput_) and _sed_.
 
 It also needs _procfs_ (especially _/proc/?/fd/0_ to get terminal input).
 

@@ -13,8 +13,9 @@ print_help () {
 print_usage () {
 	cat <<- END_OF_USAGE
 		usages:
-		         command_which_print_choices | $B$SELF$S [${U}options$S] [${U}default choice$S]
-		         $B$SELF$S [${U}options$S] [${U}default choice$S] < file_of_choices
+		         $B$SELF$S [${U}options$S] <default_choice> <choice_1> [choice_2] ...
+		         $B$SELF$S [${U}options$S] [default_choice] < file_of_choices
+		         command_which_print_choices | $B$SELF$S [${U}options$S] [default_choice]
 		options:
 		         ${B}-c$S   cursor mode (default)
 		         ${B}-n$S   numerated mode
@@ -32,6 +33,7 @@ alert () { # <comment>
 }
 
 set_defaults () {
+	unset LINES
 	unset DEFAULT
 	MODE=cursor
 	STYLE=reversed
@@ -57,7 +59,15 @@ handle_args () { # <arguments>
 		esac
 	done
 	shift $((OPTIND - 1))
-	DEFAULT=$*
+	if has_batch_input ; then # choices from standard input
+		DEFAULT=$*
+	else # default is followed by choices as arguments
+		DEFAULT=$1
+		for ARG in $(seq $(($# - 1))) ; do
+			shift
+			LINES=$(printf "$LINES\n$1" | grep -v '^$')
+		done
+	fi
 }
 
 check_input () {
@@ -299,8 +309,10 @@ set_exit_handler () {
 	set_defaults
 	set_fancy_output
 	handle_args "$@"
-	check_input
-	LINES=$(grep -v '^$') # get standard input without blank lines
+	if [ -z "$LINES" ] ; then
+		check_input
+		LINES=$(grep -v '^$') # get standard input without blank lines
+	fi
 	COUNT=$(echo "$LINES" | wc -l)
 	CLEAN_COUNT=$COUNT
 	set_exit_handler
