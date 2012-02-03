@@ -53,3 +53,17 @@ Bugs
 * The choice printed during the cleanup in numerated mode is truncated to 1000 characters.
 
 * Long lists with more lines than the terminal height are only supported in numerated verbose mode.
+
+
+Dependencies
+------------
+
+It should need no special tool to run. Indeed all requirements are standard and commonly available.
+
+_choose_ runs with _/bin/sh_ which can be any POSIX shell (_ash_, _bash_, _dash_, _ksh_, _zsh_...).
+
+It uses many basic tools from _coreutils_ (_basename_, _cat_, _head_, _cut_, _tr_, _fold_, _od_, _dd_, _wc_, _stty_), _ncurses_ (_tput_) and _sed_.
+
+It also needs _procfs_ (especially _/proc/?/fd/0_ to get terminal input).
+
+It is designed for GNU/Linux but could run on other Unix.
