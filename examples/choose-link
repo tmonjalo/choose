@@ -1,0 +1,151 @@
+#! /bin/sh -e
+# by Thomas Monjalon
+
+print_help ()
+{
+	print_usage
+	echo "help:  $SELF -h" >&2
+}
+print_usage ()
+{
+	echo "usage: $SELF [-d|-f <choices directory>] <link>" >&2
+}
+usage_alert () # <comment>
+{
+	print_usage
+	alert "$@"
+}
+alert () # <comment>
+{
+	echo $SELF: "$@" >&2
+	exit 1
+}
+
+set_defaults ()
+{
+	unset CHOICES_DIR
+	unset FIND_OPTION
+}
+handle_args ()
+{
+	SELF=$(basename $0)
+	while getopts d:f:h ARG ; do
+		case $ARG in
+			d )
+				CHOICES_DIR=$OPTARG
+				FIND_OPTION='-type d'
+			;;
+			f )
+				CHOICES_DIR=$OPTARG
+				FIND_OPTION='-type f'
+			;;
+			h )
+				print_help
+				exit 0
+			;;
+		esac
+	done
+	shift $((OPTIND - 1))
+	LINK=$(echo $1 | trailing_slash_filter)
+}
+
+get_link_target () # <link>
+{
+	if [ ! -L "$1" ] ; then
+		[ ! -e "$1" ] || alert "$1 exists and is not a link"
+		[ -n "$CHOICES_DIR" ] || usage_alert "$1 does not exist: you should specify a directory"
+	else
+		readlink $1
+	fi
+}
+
+guess_fallbacks () # <target>
+{
+	[ -n "$FIND_OPTION" ] || {
+		if [ -d "$1" ] ; then
+			FIND_OPTION='-type d'
+		elif [ -f "$1" ] ; then
+			FIND_OPTION='-type f'
+		fi
+	}
+	[ -n "$CHOICES_DIR" ] || CHOICES_DIR=$(echo $1 | dirname_filter)
+}
+
+alert_empty () # <directory>
+{
+	if [ "$FIND_OPTION" = '-type d' ] ; then
+		alert "no directory in $1"
+	elif [ "$FIND_OPTION" = '-type f' ] ; then
+		alert "no file in $1"
+	else
+		alert "no item in $1"
+	fi
+}
+
+get_choose_path ()
+{
+	CHOOSE=$(dirname $(readlink -m $0))/../choose
+	[ -x $CHOOSE ] || CHOOSE=choose
+	[ -x $CHOOSE ] || alert 'cannot find choose'
+}
+
+get_list () # <directory>
+{
+	find "$1" -mindepth 1 -maxdepth 1 $FIND_OPTION | sed 's%^\./%%' | sort
+}
+
+dirname_filter ()
+{
+	sed 's,^\([^/]*\)$,./\1,' |
+	sed 's,\(.*[^/]\)/\+[^/]*/*$,\1,'
+}
+basename_filter ()
+{
+	sed 's,.*/\([^/]*\),\1,'
+}
+trailing_slash_filter ()
+{
+	sed 's,/*$,,'
+}
+
+check_link_name ()
+{
+	[ -n "$1" ] || usage_alert "link is missing"
+}
+check_list_in_directory () # <list> <directory>
+{
+	[ -n "$1" ] || alert_empty "$2"
+}
+check_item () # <directory> <item>
+{
+	[ -n "$1" ] || exit 2 # choice aborted
+	[ -e "$1/$2" ] || alert "$2 does not exist"
+}
+check_directory () # <directory>
+{
+	[ -d "$1" ] || alert "$1 is not a valid directory"
+}
+
+update_link () # <link> <target>
+{
+	[ ! -L "$1" ] || rm "$1"
+	ln -s "$2" "$1" || alert "cannot create link to $2"
+}
+
+get_choose_path
+set_defaults
+handle_args "$@"
+check_link_name "$LINK"
+OLD_TARGET=$(get_link_target "$LINK")
+guess_fallbacks "$OLD_TARGET"
+cd $(dirname $LINK)
+check_directory "$CHOICES_DIR"
+LIST=$(get_list "$CHOICES_DIR")
+check_list_in_directory "$LIST" "$CHOICES_DIR"
+DEFAULT_CHOICE=$(echo $OLD_TARGET | basename_filter)
+trap "exit 2" INT QUIT TERM # catch interrupted choose
+CHOICE=$(echo "$LIST" | basename_filter | $CHOOSE -aq $DEFAULT_CHOICE)
+check_item "$CHOICES_DIR" "$CHOICE"
+CHOICE="$CHOICES_DIR/$CHOICE"
+update_link "$(basename $LINK)" "$CHOICE"
+echo "$LINK -> $CHOICE"
