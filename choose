@@ -114,11 +114,13 @@ get_key_codes () {
 
 configure_tty () {
 	TTY_SAVE=$(stty -g)
-	stty cs8 -icanon -echo
+	stty cs8 -icanon -echo # get key codes without echoing
+	tput civis # hide cursor
 }
 
 restore_tty () {
 	test -z "$TTY_SAVE" || stty $TTY_SAVE >&- 2>&-
+	tput cnorm # show cursor
 }
 
 set_fancy_output () {
@@ -160,6 +162,7 @@ cursor_begin () {
 	term_pos_save
 	term_pos_up $((COUNT - N + 1)) # go up to current line
 }
+
 cursor_end () {
 	term_pos_restore
 }
@@ -263,11 +266,11 @@ numerated_list () {
 }
 
 cursor_list () {
+	configure_tty
 	WIDTH=$(stty size | cut -d' ' -f2)
 	echo "$LINES" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
-	configure_tty
 	cursor_init
 }
 
