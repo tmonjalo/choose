@@ -123,6 +123,10 @@ restore_tty () {
 	tput cnorm # show cursor
 }
 
+get_width () {
+	WIDTH=$(stty size | cut -d' ' -f2)
+}
+
 set_fancy_output () {
 	if is_redirected ; then
 		unset S B U R
@@ -181,7 +185,7 @@ cursor_draw () {
 	if [ $STYLE = arrow ] ; then
 		printf $ARROW
 	else
-		printf "$(print_current_line | format_$STYLE)"
+		printf "$(print_current_line | format_cursor)"
 	fi
 	cursor_end
 }
@@ -213,7 +217,7 @@ clean_menu () {
 	term_pos_up ${CLEAN_COUNT} # go to first line
 	term_pos_home
 	term_clear_bottom
-	[ $CLEAN = all ] || print_current_line | format_$STYLE
+	[ $CLEAN = all ] || print_current_line | format_$MODE
 }
 
 truncate () { # <width>
@@ -223,23 +227,34 @@ truncate () { # <width>
 	done
 }
 
-format_simple () { # < lines
+format_simple () { # < lines in cursor mode
 	truncate $((WIDTH - ${#INDENT})) | sed "s,^,$INDENT,"
 }
 
-format_arrow () { # < lines
+format_arrow () { # < lines in cursor mode
 	format_simple | sed "s,^..,$ARROW,"
 }
 
-format_reversed () { # < lines
+format_reversed () { # < lines in cursor mode
 	truncate $((WIDTH - ${#INDENT})) | sed "s,\(.*\),$INDENT$R\1$S,"
+}
+
+format_cursor () { # < lines in cursor mode
+	format_$STYLE
+}
+
+format_numerated () { # < lines in numerated mode
+	DEFAULT=$(print_current_line)
+	# replace index number by spaces
+	INDENT=$(echo '+:' | cat -n | cut -d: -f1 | sed 's,., ,g')
+	sed "s,^,$INDENT," | filter_default
 }
 
 regescape () { # <string>
 	echo "$@" | sed 's,\([[\/.*]\|\]\),\\&,g'
 }
 
-filter_default () { # < lines
+filter_default () { # < lines in numerated mode
 	if [ -n "$DEFAULT" ] ; then
 		if [ $STYLE = arrow ] ; then
 			sed "s/^..\( *[0-9]*[	 ]*$(regescape $DEFAULT)\)$/$ARROW\1/"
@@ -263,11 +278,12 @@ print_current_line () {
 
 numerated_list () {
 	echo "$LINES" | cat -n | filter_default
+	[ $CLEAN = none ] || get_width
 }
 
 cursor_list () {
 	configure_tty
-	WIDTH=$(stty size | cut -d' ' -f2)
+	get_width
 	echo "$LINES" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
@@ -275,7 +291,6 @@ cursor_list () {
 }
 
 numerated_choice () { # < user input
-	WIDTH=1000 # arbitrary
 	while : ; do
 		printf "> "
 		read N

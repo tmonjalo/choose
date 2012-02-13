@@ -50,8 +50,6 @@ Bugs
 
 * The cleanup in numerated mode erase not enough lines if there are choices on multiple lines.
 
-* The choice printed during the cleanup in numerated mode is truncated to 1000 characters.
-
 * Long lists with more lines than the terminal height are only supported in numerated verbose mode.
 
 
