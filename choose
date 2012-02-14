@@ -42,6 +42,7 @@ set_defaults () {
 	INDENT='    '
 	ARROW='=>'
 	unset TTY_SAVE
+	LIST_DONE=false
 }
 
 handle_args () { # <arguments>
@@ -315,7 +316,7 @@ cursor_choice () { # < user input
 }
 
 clean () { # [override clean mode]
-	[ $CLEAN = none ] || CLEAN=${1:-$CLEAN} clean_menu
+	[ $CLEAN = none ] || ! $LIST_DONE || CLEAN=${1:-$CLEAN} clean_menu
 	restore_tty
 }
 
@@ -336,6 +337,7 @@ set_exit_handler () {
 	set_exit_handler
 	{
 		${MODE}_list
+		LIST_DONE=true
 		if [ $COUNT -le 1 ] ; then
 			N=1 # no choice
 		else
