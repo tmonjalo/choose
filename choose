@@ -66,7 +66,7 @@ handle_args () { # <arguments>
 		DEFAULT=$1
 		for ARG in $(seq $(($# - 1))) ; do
 			shift
-			LINES=$(printf "$LINES\n$1" | grep -v '^$')
+			LINES=$(printf -- "$LINES\n$1" | grep -v '^$')
 		done
 	fi
 }
@@ -177,7 +177,7 @@ cursor_erase () {
 	if [ $STYLE = arrow ] ; then
 		printf $ARROW | sed 's,., ,g'
 	else
-		printf "$(print_current_line | format_simple)"
+		printf -- "$(print_current_line | format_simple)"
 	fi
 	term_pos_home
 }
@@ -186,7 +186,7 @@ cursor_draw () {
 	if [ $STYLE = arrow ] ; then
 		printf $ARROW
 	else
-		printf "$(print_current_line | format_cursor)"
+		printf -- "$(print_current_line | format_cursor)"
 	fi
 	cursor_end
 }
@@ -224,7 +224,7 @@ clean_menu () {
 truncate () { # <width>
 	while read LINE ; do
 		# fold count the tab space unlike cut
-		printf "$LINE\n" | fold -w$1 | head -n1
+		printf -- "$LINE\n" | fold -w$1 | head -n1
 	done
 }
 
@@ -247,12 +247,12 @@ format_cursor () { # < lines in cursor mode
 format_numerated () { # < lines in numerated mode
 	DEFAULT=$(print_current_line)
 	# replace index number by spaces
-	INDENT=$(echo '+:' | cat -n | cut -d: -f1 | sed 's,., ,g')
+	INDENT=$(printf '+:' | cat -n | cut -d: -f1 | sed 's,., ,g')
 	sed "s,^,$INDENT," | filter_default
 }
 
 regescape () { # <string>
-	echo "$@" | sed 's,\([[\/.*]\|\]\),\\&,g'
+	printf -- "$@" | sed 's,\([[\/.*]\|\]\),\\&,g'
 }
 
 filter_default () { # < lines in numerated mode
@@ -269,23 +269,23 @@ filter_default () { # < lines in numerated mode
 
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
-		echo "$LINES" | sed -n "/^$(regescape $DEFAULT)$/=" | head -n1
+		printf -- "$LINES" | sed -n "/^$(regescape $DEFAULT)$/=" | head -n1
 	fi
 }
 
 print_current_line () {
-	echo "$LINES" | sed -n ${N}p
+	printf -- "$LINES\n" | sed -n ${N}p
 }
 
 numerated_list () {
-	echo "$LINES" | cat -n | filter_default
+	printf -- "$LINES\n" | cat -n | filter_default
 	[ $CLEAN = none ] || get_width
 }
 
 cursor_list () {
 	configure_tty
 	get_width
-	echo "$LINES" | format_simple
+	printf -- "$LINES\n" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
 	cursor_init
@@ -332,7 +332,7 @@ set_exit_handler () {
 		check_input
 		LINES=$(grep -v '^$') # get standard input without blank lines
 	fi
-	COUNT=$(echo "$LINES" | wc -l)
+	COUNT=$(printf -- "$LINES\n" | wc -l)
 	CLEAN_COUNT=$COUNT
 	set_exit_handler
 	{
