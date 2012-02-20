@@ -30,6 +30,8 @@ When the choice is done, the menu can disappeared (quiet option), be replaced by
 
 If you don't want it tampers your TTY with alternative settings and special characters, use _-nav_ options (numerated mode with arrow and keep verbose). It disables all "advanced" features.
 
+The environment variables _INDENT_ and _ARROW_ allow to customize line prefix.
+
 
 Example
 -------
