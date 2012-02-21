@@ -307,6 +307,7 @@ cursor_choice () { # < user input
 	local KEY
 	while : ; do
 		KEY=$(dd bs=4 count=1 2>&- | code2hex)
+		get_width # update width in case of resizing
 		case $KEY in
 			"$TTY_ENT"  | "$TTY_KENT"                ) break ;;
 			"$TTY_CUU1" | "$TTY_KCUU1"               ) cursor_up ;;
