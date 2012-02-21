@@ -48,7 +48,7 @@ Bugs
 
 * In cursor mode, long lines with non printable characters are smaller than the terminal width.
 
-* The cleanup in numerated mode erase not enough lines if there are choices on multiple lines.
+* In numerated mode with default verbose, clearing may be wrong if there are long lines with non printable characters.
 
 * Long lists with more lines than the terminal height are only supported in numerated verbose mode.
 

@@ -280,9 +280,11 @@ print_current_line () {
 numerated_list () {
 	printf -- "$LINES\n" | cat -n | filter_default
 	[ $CLEAN = none ] || get_width
+	CLEAN_COUNT=$(printf -- "$LINES\n" | cat -n | fold -w$WIDTH | wc -l)
 }
 
 cursor_list () {
+	CLEAN_COUNT=$COUNT
 	configure_tty
 	get_width
 	printf -- "$LINES\n" | format_simple
@@ -334,7 +336,6 @@ set_exit_handler () {
 		LINES=$(grep -v '^$') # get standard input without blank lines
 	fi
 	COUNT=$(printf -- "$LINES\n" | wc -l)
-	CLEAN_COUNT=$COUNT
 	set_exit_handler
 	{
 		${MODE}_list
