@@ -1,4 +1,6 @@
 #! /bin/sh -e
+
+# choose: a shell menu
 # by Thomas Monjalon
 
 print_help () {
