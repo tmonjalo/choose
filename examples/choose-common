@@ -1,0 +1,27 @@
+# common functions used by examples
+# by Thomas Monjalon
+
+print_help ()
+{
+	print_usage
+	echo "help:  $SELF -h" >&2
+}
+
+usage_alert () # <comment>
+{
+	print_usage
+	alert "$@"
+}
+
+alert () # <comment>
+{
+	echo $SELF: "$@" >&2
+	exit 1
+}
+
+get_choose_path ()
+{
+	CHOOSE=$(dirname $(readlink -m $0))/../choose
+	[ -x $CHOOSE ] || CHOOSE=choose
+	[ -x $CHOOSE ] || alert 'cannot find choose'
+}
