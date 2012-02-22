@@ -114,9 +114,9 @@ update_link () # <link> <target>
 	ln -s "$2" "$1" || alert "cannot create link to $2"
 }
 
-get_choose_path
 set_defaults
 handle_args "$@"
+get_choose_path
 check_link_name "$LINK"
 OLD_TARGET=$(get_link_target "$LINK")
 guess_fallbacks "$OLD_TARGET"
