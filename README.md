@@ -42,6 +42,7 @@ Example
     # echo $answer
     yes
 
+There is a directory with more useful examples.
 
 Bugs
 ----

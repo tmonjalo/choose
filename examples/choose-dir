@@ -1,0 +1,6 @@
+#! /bin/echo should be sourced with .
+
+# choose-dir: navigate in filesystem
+# by Thomas Monjalon
+
+alias choose-dir='while true ; do dir=$(ls --group-directories-first -apqI. | choose -q) ; [ -d $dir ] && cd $dir || break ; done'

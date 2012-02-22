@@ -6,3 +6,5 @@ test scripts
 
 example scripts
 	choose-git-branch
+	choose-git-rebase
+	choose-git-push
