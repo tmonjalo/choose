@@ -1,6 +1,8 @@
 # common functions used by examples
 # by Thomas Monjalon
 
+SELF=$(basename $0)
+
 print_help ()
 {
 	print_usage

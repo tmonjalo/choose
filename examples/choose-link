@@ -17,7 +17,6 @@ set_defaults ()
 }
 handle_args ()
 {
-	SELF=$(basename $0)
 	while getopts d:f:h ARG ; do
 		case $ARG in
 			d )
