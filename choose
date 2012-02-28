@@ -217,7 +217,7 @@ cursor_down () {
 }
 
 clean_menu () {
-	term_pos_up ${CLEAN_COUNT} # go to first line
+	term_pos_up $CLEAN_COUNT # go to first line
 	term_pos_home
 	term_clear_bottom
 	[ $CLEAN = all ] || print_current_line | format_$MODE
