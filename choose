@@ -25,6 +25,7 @@ print_usage () {
 		         ${B}-a$S   arrow style
 		         ${B}-q$S   quiet = clean all on exit
 		         ${B}-v$S   verbose = keep menu on exit
+		         ${B}-s$S   single choice auto-validated
 		         ${B}-h$S   help
 	END_OF_USAGE
 }
@@ -40,6 +41,7 @@ set_defaults () {
 	MODE=cursor
 	STYLE=reversed
 	CLEAN=keepchoice
+	SINGLE_AUTO=false
 	N=0
 	INDENT=${INDENT:-'    '}
 	ARROW=${ARROW:-'=>'}
@@ -50,7 +52,7 @@ set_defaults () {
 handle_args () { # <arguments>
 	local ARG
 	SELF=$(basename $0)
-	while getopts cnraqvh ARG ; do
+	while getopts cnraqvsh ARG ; do
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
@@ -58,6 +60,7 @@ handle_args () { # <arguments>
 			a ) STYLE=arrow ;;
 			q ) CLEAN=all ;;
 			v ) CLEAN=none ;;
+			s ) SINGLE_AUTO=true ;;
 			h ) print_help ; exit 0 ;;
 		esac
 	done
@@ -342,7 +345,7 @@ set_exit_handler () {
 	{
 		${MODE}_list
 		LIST_DONE=true
-		if [ $COUNT -le 1 ] ; then
+		if [ $COUNT -le 1 ] && $SINGLE_AUTO ; then
 			N=1 # no choice
 		else
 			${MODE}_choice
