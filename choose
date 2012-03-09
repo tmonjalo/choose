@@ -30,6 +30,12 @@ print_usage () {
 	END_OF_USAGE
 }
 
+usage_alert () # <comment>
+{
+	print_usage
+	alert "$@"
+}
+
 alert () { # <comment>
 	echo $SELF: "$@"
 	exit 1
@@ -65,21 +71,16 @@ handle_args () { # <arguments>
 		esac
 	done
 	shift $((OPTIND - 1))
-	if has_batch_input ; then # choices from standard input
+	if has_batch_input ; then
 		DEFAULT=$*
+		LINES=$(sed '/^$/d') # choices from standard input
 	else # default is followed by choices as arguments
 		DEFAULT=$1
-		for ARG in $(seq $(($# - 1))) ; do
+		[ $# -gt 1 ] || usage_alert 'no input'
+		for ARG in $(seq $#) ; do
 			shift
-			LINES=$(printf -- "$LINES\n$1" | grep -v '^$')
+			LINES=$(printf -- "$LINES\n$1" | sed '/^$/d')
 		done
-	fi
-}
-
-check_input () {
-	if ! has_batch_input ; then
-		print_usage
-		alert 'no input'
 	fi
 }
 
@@ -336,10 +337,7 @@ set_exit_handler () {
 	set_defaults
 	set_fancy_output
 	handle_args "$@"
-	if [ -z "$LINES" ] ; then
-		check_input
-		LINES=$(grep -v '^$') # get standard input without blank lines
-	fi
+	[ -n "$LINES" ] || exit 0
 	COUNT=$(printf -- "$LINES\n" | wc -l)
 	set_exit_handler
 	{
