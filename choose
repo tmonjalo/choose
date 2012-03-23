@@ -113,8 +113,11 @@ get_key_codes () {
 	# DOWN
 	TTY_CUD1=$(tput cud1 | code2hex)
 	TTY_KCUD1=$(tput kcud1 | code2hex)
-	# some terminals send the wrong code for certain arrow keys
-	if [ "$TTY_CUU1" = 1b5b41 -o "$TTY_KCUU1" = 1b5b41 ] ; then
+	# some terminals send wrong codes for arrow keys
+	if [ "$TTY_CUU1" = 1b4d ] ; then
+		TTY_CUUX=1b5b41
+	fi
+	if [ "$TTY_CUU1" = 1b5b41 -o "$TTY_KCUU1" = 1b5b41 -o "$TTY_CUUX" = 1b5b41 ] ; then
 		TTY_CUDX=1b5b42
 	fi
 }
@@ -318,7 +321,7 @@ cursor_choice () { # < user input
 		get_width # update width in case of resizing
 		case $KEY in
 			"$TTY_ENT"  | "$TTY_KENT"                ) break ;;
-			"$TTY_CUU1" | "$TTY_KCUU1"               ) cursor_up ;;
+			"$TTY_CUU1" | "$TTY_KCUU1" | "$TTY_CUUX" ) cursor_up ;;
 			"$TTY_CUD1" | "$TTY_KCUD1" | "$TTY_CUDX" ) cursor_down ;;
 		esac
 	done
