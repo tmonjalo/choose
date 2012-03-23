@@ -26,5 +26,5 @@ get_choose_path ()
 	CHOOSE=$(dirname $(readlink -m $0))/../choose
 	[ -x $CHOOSE ] || CHOOSE=$(dirname $(readlink -m $0))/choose
 	[ -x $CHOOSE ] || CHOOSE=choose
-	which $CHOOSE >&- || alert 'cannot find choose'
+	which $CHOOSE >/dev/null 2>&- || alert 'cannot find choose'
 }
