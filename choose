@@ -184,7 +184,7 @@ cursor_end () {
 cursor_erase () {
 	cursor_begin
 	if [ $STYLE = arrow ] ; then
-		printf -- $ARROW | sed 's,., ,g'
+		printf -- "$INDENT"
 	else
 		printf -- "$(print_current_line | format_simple)"
 	fi
@@ -193,7 +193,7 @@ cursor_erase () {
 
 cursor_draw () {
 	if [ $STYLE = arrow ] ; then
-		printf -- $ARROW
+		printf -- "$ARROW"
 	else
 		printf -- "$(print_current_line | format_cursor)"
 	fi
