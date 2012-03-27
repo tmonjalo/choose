@@ -49,8 +49,8 @@ set_defaults () {
 	CLEAN=keepchoice
 	SINGLE_AUTO=false
 	N=0
-	INDENT=${INDENT:-'    '}
-	ARROW=${ARROW:-'=>'}
+	INDENT=${CHOOSE_INDENT:-'    '}
+	ARROW=${CHOOSE_ARROW:-'=>'}
 	unset TTY_SAVE
 	LIST_DONE=false
 }
