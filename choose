@@ -44,8 +44,10 @@ alert () { # <comment>
 set_defaults () {
 	unset LINES
 	unset DEFAULT
-	MODE=cursor
-	STYLE=reversed
+	MODE=$CHOOSE_MODE
+	[ "$MODE" = cursor -o "$MODE" = numerated ] || MODE=cursor
+	STYLE=$CHOOSE_STYLE
+	[ "$STYLE" = reversed -o "$STYLE" = arrow ] || STYLE=reversed
 	CLEAN=keepchoice
 	SINGLE_AUTO=false
 	N=0
