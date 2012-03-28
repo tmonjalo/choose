@@ -1,5 +1,6 @@
 # common functions used by examples
 # by Thomas Monjalon
+# This file is in the public domain.
 
 SELF=$(basename $0)
 

@@ -2,6 +2,7 @@
 
 # choose-link: create or divert symbolic link
 # by Thomas Monjalon
+# This file is in the public domain.
 
 . $(dirname $(readlink -m $0))/choose-common
 

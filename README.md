@@ -66,3 +66,8 @@ It uses many basic tools from _coreutils_ (_basename_, _cat_, _head_, _cut_, _tr
 It also needs _procfs_ (especially _/proc/?/fd/0_ to get terminal input).
 
 It is designed for GNU/Linux but could run on other Unix.
+
+Copyright
+---------
+
+The author disclaims copyrights, so choose is in the public domain.

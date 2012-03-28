@@ -2,6 +2,7 @@
 
 # choose: a shell menu
 # by Thomas Monjalon
+# This file is in the public domain.
 
 print_help () {
 	cat <<- END_OF_HELP
