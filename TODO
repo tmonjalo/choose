@@ -5,6 +5,5 @@ columns for long list of short lines (disabled by option -1)
 test scripts
 
 example scripts
-	choose-git-branch
 	choose-git-rebase
 	choose-git-push

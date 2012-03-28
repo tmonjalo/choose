@@ -1,0 +1,55 @@
+#! /bin/sh -e
+
+# choose-git-branch: checkout local or remote branch
+# by Thomas Monjalon
+# This file is in the public domain.
+
+. $(dirname $(readlink -m $0))/choose-common
+
+CLEAR=0
+trap 'abort 2' INT QUIT TERM # catch interrupted choose
+get_choose_path
+
+abort () {
+	[ $CLEAR -eq 0 ] || printf "\033[${CLEAR}A" # go up
+	printf '\033[J' # clear lines below
+	exit $1
+}
+
+REMOTES=$(git branch -r | cut -c3- | grep -v '/HEAD ->')
+BRANCHES=$(git branch | sed 's,no branch,none,')
+LOCALS=$(echo "$BRANCHES" | cut -c3-)
+CURRENT=$(echo "$BRANCHES" | sed -n 's,^*.,,p')
+CONFIG=$(git config -l | sed 's,=refs/heads/,=,' | sed -n 's,^branch\..*\.\(remote\|merge\)=,,p')
+TRACKED=$(echo "$CONFIG" | sed '$!N;s,\n,/,' | sort -u)
+TRACKABLES=$(printf "$REMOTES\n$TRACKED" | sort | uniq -u) # = REMOTES - TRACKED
+TRACK=${TRACKABLES:+- track a new one -}
+
+CHOICE=$($CHOOSE -c "$CURRENT" $LOCALS "$TRACK")
+CLEAR=$((CLEAR + 1))
+[ "$CHOICE" != "$CURRENT" ] || abort 1
+
+if [ "$CHOICE" = "$TRACK" ] ; then
+	echo remotes:
+	CLEAR=$((CLEAR + 1))
+	CHOICE=$($CHOOSE -c '' $TRACKABLES)
+	CLEAR=$((CLEAR + 1))
+	BRANCH="--track $CHOICE"
+else
+	BRANCH=$CHOICE
+fi
+
+STASH=false
+DIRTY=$(git status --porcelain -uno)
+if [ -n "$DIRTY" ] ; then
+	echo directory is dirty
+	CLEAR=$((CLEAR + 1))
+	CHOICE=$($CHOOSE -c '' '- stash modifications -' '- keep modifications -')
+	if echo $CHOICE | grep -q stash ; then
+		STASH=true
+	fi
+fi
+
+! $STASH || git stash --quiet
+git checkout --quiet $BRANCH
+! $STASH || git stash pop --quiet
