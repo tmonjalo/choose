@@ -1,0 +1,18 @@
+# common functions used by git examples
+# by Thomas Monjalon
+# This file is in the public domain.
+
+. $(dirname $(readlink -m $0))/choose-common
+
+abort () {
+	[ $CLEAR -eq 0 ] || printf "\033[${CLEAR}A" # go up
+	printf '\033[J' # clear lines below
+	exit $1
+}
+
+CLEAR=0
+trap 'abort 2' INT QUIT TERM # catch interrupted choose
+get_choose_path
+
+# get remote branches or exit if not a git repository
+REMOTES=$(git branch -r | cut -c3- | grep -v '/HEAD ->')
