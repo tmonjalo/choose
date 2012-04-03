@@ -1,0 +1,47 @@
+#! /bin/sh -e
+
+# choose-git-push: push selected commits in selected remote branch
+# by Thomas Monjalon
+# This file is in the public domain.
+
+. $(dirname $(readlink -m $0))/choose-git-common
+
+git_log_local () { # <scope>
+	git log --oneline --decorate --reverse $1 --not --remotes
+}
+
+git_log_ff () { # <since> <until>
+	git log --oneline --decorate --ancestry-path --boundary $1..$2
+}
+
+get_remotes_to_fast_forward () { # <commit>
+	for REMOTE in $REMOTES ; do
+		# can fast forward if remote is an ancestor boundary
+		if git_log_ff $REMOTE $1 | grep -q "^- .*[ (]$REMOTE[),]" ; then
+			echo $REMOTE
+		fi
+	done
+}
+
+print_usage () {
+	echo "usage: $SELF [-a]" >&2
+}
+
+SCOPE=HEAD
+while getopts ah ARG ; do
+	case $ARG in
+		a ) SCOPE=--all ;;
+		h ) print_help ; exit 0 ;;
+	esac
+done
+
+COMMIT=$(git_log_local $SCOPE | $CHOOSE -c | cut -d' ' -f1)
+[ -n "$COMMIT" ] || alert no commit to push
+CLEAR=$((CLEAR + 1))
+
+echo 'remote:'
+CLEAR=$((CLEAR + 1))
+set -- $(get_remotes_to_fast_forward $COMMIT | $CHOOSE -c | tr '/' ' ')
+CLEAR=$((CLEAR + 1))
+
+git push $1 $COMMIT:$2
