@@ -51,7 +51,7 @@ Bugs
 
 * In numerated mode with default verbose, clearing may be wrong if there are long lines with non printable characters.
 
-* Long lists with more lines than the terminal height are only supported in numerated verbose mode.
+* Long lists with more lines than the terminal height are only supported in verbose numerated mode.
 
 
 Dependencies
@@ -70,4 +70,4 @@ It is designed for GNU/Linux but could run on other Unix.
 Copyright
 ---------
 
-The author disclaims copyrights, so choose is in the public domain.
+The author disclaims copyrights, so _choose_ is in the public domain.

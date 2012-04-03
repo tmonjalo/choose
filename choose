@@ -6,8 +6,8 @@
 
 print_help () {
 	cat <<- END_OF_HELP
-		It returns on stdout the chosen line among the ones submitted via stdin.
-		Apart result, all is printed on stderr.
+		It returns on stdout the chosen line among the ones from stdin or arguments.
+		All but result is printed on stderr.
 
 	END_OF_HELP
 	print_usage
