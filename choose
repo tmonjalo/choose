@@ -95,6 +95,10 @@ is_redirected () {
 	test ! -t 2
 }
 
+get_ppid () { # <pid>
+	cut -d' ' -f4 /proc/$1/stat
+}
+
 isdigit () { # <string>
 	test $# -eq 1
 	case $1 in
@@ -123,6 +127,13 @@ get_key_codes () {
 	if [ "$TTY_CUU1" = 1b5b41 -o "$TTY_KCUU1" = 1b5b41 -o "$TTY_CUUX" = 1b5b41 ] ; then
 		TTY_CUDX=1b5b42
 	fi
+}
+
+get_tty_input () {
+	PID=$PPID
+	# tty may be attached to parent or grandparent when piped in some shells
+	tty </proc/$PID/fd/0 >/dev/null || PID=$(get_ppid $PID)
+	echo /proc/$PID/fd/0
 }
 
 configure_tty () {
@@ -355,6 +366,6 @@ set_exit_handler () {
 			${MODE}_choice
 		fi
 		clean
-	} </proc/$PPID/fd/0 # get terminal input
+	} <$(get_tty_input)
 } >&2
 print_current_line # return chosen line on standard output
