@@ -1,0 +1,47 @@
+#! /bin/sh -e
+
+# choose-git-rebase: select base for interactive rebasing
+# by Thomas Monjalon
+# This file is in the public domain.
+
+. $(dirname $(readlink -m $0))/choose-git-common
+
+isdigit () { # <string>
+	case $1 in
+		*[!0-9]* | '') false ;;
+	esac
+}
+
+git_log () { # <commit> [options]
+	git log --oneline --graph --decorate $1 $LOG_OPTS $2
+}
+
+hash_filter () {
+	# remove graph at beginning of line and keep hash only
+	sed -n 's,[^0-9a-f]*\([0-9a-f]*\).*,\1,p'
+}
+
+git_dirty () {
+	echo $1 changes
+	git stash $2 --quiet
+}
+
+LOG_OPTS='--not --remotes --boundary'
+if isdigit "$1" ; then
+	LAST_REMOTE_HASH=$(git_log HEAD | tail -n1 | hash_filter)
+	LOG_OPTS="-n$1"
+	LAST_REMOTE_COMMIT=$(git_log $LAST_REMOTE_HASH -n1)
+else
+	LAST_REMOTE_COMMIT=$(git_log HEAD | tail -n1)
+fi
+
+COMMIT=$(git_log HEAD | $CHOOSE -c "$LAST_REMOTE_COMMIT" | hash_filter)
+[ -n "$COMMIT" ] || alert no local commit to rebase
+
+DIRTY=$(git status --porcelain -uno)
+[ -z "$DIRTY" ] || git_dirty stash
+
+git rebase -i $COMMIT
+
+[ -z "$DIRTY" ] || git_dirty unstash pop
+git log --oneline --decorate --reverse $COMMIT..HEAD

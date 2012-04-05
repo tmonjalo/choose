@@ -3,6 +3,3 @@ fix bugs listed in README.md
 columns for long list of short lines (disabled by option -1)
 
 test scripts
-
-example scripts
-	choose-git-rebase
