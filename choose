@@ -279,9 +279,9 @@ regescape () { # <string>
 filter_default () { # < lines in numerated mode
 	if [ -n "$DEFAULT" ] ; then
 		if [ $STYLE = arrow ] ; then
-			sed "s/^.\{${#ARROW}\}\( *[0-9]*[	 ]*$(regescape $DEFAULT)\)$/$ARROW\1/"
+			sed "s/^.\{${#ARROW}\}\( *[0-9]*[	 ]*$(regescape "$DEFAULT")\)$/$ARROW\1/"
 		else
-			sed "s/^\( *[0-9]*[	 ]*\)\($(regescape $DEFAULT)\)$/\1$R\2$S/"
+			sed "s/^\( *[0-9]*[	 ]*\)\($(regescape "$DEFAULT")\)$/\1$R\2$S/"
 		fi
 	else
 		cat
@@ -290,7 +290,7 @@ filter_default () { # < lines in numerated mode
 
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
-		printf -- "$LINES" | sed -n "/^$(regescape $DEFAULT)$/=" | head -n1
+		printf -- "$LINES" | sed -n "/^$(regescape "$DEFAULT")$/=" | head -n1
 	fi
 }
 
