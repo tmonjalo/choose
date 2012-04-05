@@ -6,6 +6,8 @@
 
 print_help () {
 	cat <<- END_OF_HELP
+		choose 1.0
+
 		It returns on stdout the chosen line among the ones from stdin or arguments.
 		All but result is printed on stderr.
 
