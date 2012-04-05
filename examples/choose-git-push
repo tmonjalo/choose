@@ -17,7 +17,7 @@ git_log_ff () { # <since> <until>
 get_remotes_to_fast_forward () { # <commit>
 	for REMOTE in $REMOTES ; do
 		# can fast forward if remote is an ancestor boundary
-		if git_log_ff $REMOTE $1 | grep -q "^- .*[ (]$REMOTE[),]" ; then
+		if git_log_ff $REMOTE $1 | grep -q "^-.*[ (]$REMOTE[),]" ; then
 			echo $REMOTE
 		fi
 	done
