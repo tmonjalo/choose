@@ -99,7 +99,6 @@ get_ppid () { # <pid>
 }
 
 isdigit () { # <string>
-	test $# -eq 1
 	case $1 in
 		*[!0-9]* | '') false ;;
 	esac
