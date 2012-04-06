@@ -126,7 +126,7 @@ LIST=$(get_list "$CHOICES_DIR")
 check_list_in_directory "$LIST" "$CHOICES_DIR"
 DEFAULT_CHOICE=$(echo $OLD_TARGET | basename_filter)
 trap "exit 2" INT QUIT TERM # catch interrupted choose
-CHOICE=$(echo "$LIST" | basename_filter | $CHOOSE -aq $DEFAULT_CHOICE)
+CHOICE=$(echo "$LIST" | basename_filter | $CHOOSE -q $DEFAULT_CHOICE)
 check_item "$CHOICES_DIR" "$CHOICE"
 CHOICE="$CHOICES_DIR/$CHOICE"
 update_link "$(basename $LINK)" "$CHOICE"

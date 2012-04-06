@@ -35,7 +35,7 @@ else
 	LAST_REMOTE_COMMIT=$(git_log HEAD | tail -n1)
 fi
 
-COMMIT=$(git_log HEAD | $CHOOSE -c "$LAST_REMOTE_COMMIT" | hash_filter)
+COMMIT=$(git_log HEAD | $CHOOSE "$LAST_REMOTE_COMMIT" | hash_filter)
 [ -n "$COMMIT" ] || alert no local commit to rebase
 
 DIRTY=$(git status --porcelain -uno)

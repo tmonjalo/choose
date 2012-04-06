@@ -15,14 +15,14 @@ TRACKED=$(echo "$CONFIG" | sed '$!N;s,\n,/,' | sort -u)
 TRACKABLES=$(printf "$REMOTES\n$TRACKED" | sort | uniq -u) # = REMOTES - TRACKED
 
 TRACK=${TRACKABLES:+- track a new one -}
-CHOICE=$($CHOOSE -c "$CURRENT" $LOCALS "$TRACK")
+CHOICE=$($CHOOSE "$CURRENT" $LOCALS "$TRACK")
 CLEAR=$((CLEAR + 1))
 [ "$CHOICE" != "$CURRENT" ] || abort 1
 
 if [ "$CHOICE" = "$TRACK" ] ; then
 	echo remotes:
 	CLEAR=$((CLEAR + 1))
-	CHOICE=$($CHOOSE -c '' $TRACKABLES)
+	CHOICE=$($CHOOSE '' $TRACKABLES)
 	CLEAR=$((CLEAR + 1))
 	BRANCH="--track $CHOICE"
 else
@@ -34,7 +34,7 @@ DIRTY=$(git status --porcelain -uno)
 if [ -n "$DIRTY" ] ; then
 	echo directory is dirty
 	CLEAR=$((CLEAR + 1))
-	CHOICE=$($CHOOSE -c '' '- stash modifications -' '- keep modifications -')
+	CHOICE=$($CHOOSE '' '- stash modifications -' '- keep modifications -')
 	if echo $CHOICE | grep -q stash ; then
 		STASH=true
 	fi

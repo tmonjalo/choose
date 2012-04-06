@@ -35,13 +35,13 @@ while getopts ah ARG ; do
 	esac
 done
 
-COMMIT=$(git_log_local $SCOPE | $CHOOSE -c | cut -d' ' -f1)
+COMMIT=$(git_log_local $SCOPE | $CHOOSE | cut -d' ' -f1)
 [ -n "$COMMIT" ] || alert no commit to push
 CLEAR=$((CLEAR + 1))
 
 echo 'remote:'
 CLEAR=$((CLEAR + 1))
-set -- $(get_remotes_to_fast_forward $COMMIT | $CHOOSE -c | tr '/' ' ')
+set -- $(get_remotes_to_fast_forward $COMMIT | $CHOOSE | tr '/' ' ')
 CLEAR=$((CLEAR + 1))
 
 git push $1 $COMMIT:$2
