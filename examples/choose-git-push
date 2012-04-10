@@ -43,5 +43,6 @@ echo 'remote:'
 CLEAR=$((CLEAR + 1))
 set -- $(get_remotes_to_fast_forward $COMMIT | $CHOOSE | tr '/' ' ')
 CLEAR=$((CLEAR + 1))
+[ -n "$2" ] || alert 'no matching remote branch'
 
 git push $1 $COMMIT:$2
