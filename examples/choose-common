@@ -24,8 +24,11 @@ alert () # <comment>
 
 get_choose_path ()
 {
+	# check choose in parent directory
 	CHOOSE=$(dirname $(readlink -m $0))/../choose
-	[ -x $CHOOSE ] || CHOOSE=$(dirname $(readlink -m $0))/choose
-	[ -x $CHOOSE ] || CHOOSE=choose
+	# or check choose in same directory
+	[ -f $CHOOSE -a -x $CHOOSE ] || CHOOSE=$(dirname $(readlink -m $0))/choose
+	# or check choose in PATH
+	[ -f $CHOOSE -a -x $CHOOSE ] || CHOOSE=choose
 	which $CHOOSE >/dev/null 2>&- || alert 'cannot find choose'
 }
