@@ -12,7 +12,8 @@ abort () {
 
 CLEAR=0
 trap 'abort 2' INT QUIT TERM # catch interrupted choose
+
 get_choose_path
 
-# get remote branches or exit if not a git repository
-REMOTES=$(git branch -r | cut -c3- | grep -v '/HEAD ->')
+# exit if not a git repository
+git rev-parse --git-dir >&-

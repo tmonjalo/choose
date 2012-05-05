@@ -10,6 +10,7 @@ BRANCHES=$(git branch | sed 's,no branch,none,')
 LOCALS=$(echo "$BRANCHES" | cut -c3-)
 CURRENT=$(echo "$BRANCHES" | sed -n 's,^*.,,p')
 
+REMOTES=$(git branch -r | cut -c3- | grep -v '/HEAD ->')
 CONFIG=$(git config -l | sed 's,=refs/heads/,=,' | sed -n 's,^branch\..*\.\(remote\|merge\)=,,p')
 TRACKED=$(echo "$CONFIG" | sed '$!N;s,\n,/,' | sort -u)
 TRACKABLES=$(printf "$REMOTES\n$TRACKED" | sort | uniq -u) # = REMOTES - TRACKED
