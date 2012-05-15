@@ -17,3 +17,20 @@ get_choose_path
 
 # exit if not a git repository
 git rev-parse --git-dir >&-
+
+get_git_remote () { # <local branch>
+	git config -l |
+	sed 's,=refs/heads/,=,' |
+	sed -n "s,^branch\.$1\.\(remote\|merge\)=,,p" |
+	sed '$!N;s,\n,/,'
+}
+
+get_git_tracked_remotes () {
+	get_git_remote '.*' |
+	sort -u
+}
+
+get_git_all_remotes () {
+	git rev-parse --symbolic --remotes |
+	grep -v '/HEAD$'
+}
