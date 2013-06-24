@@ -83,7 +83,7 @@ handle_args () { # <arguments>
 		[ $# -gt 1 ] || usage_alert 'no input'
 		for ARG in $(seq $#) ; do
 			shift
-			LINES=$(printf -- "$LINES\n$1" | sed '/^$/d')
+			LINES=$(printf "%s\n%s" "$LINES" "$1" | sed '/^$/d')
 		done
 	fi
 }
@@ -198,18 +198,18 @@ cursor_end () {
 cursor_erase () {
 	cursor_begin
 	if [ $STYLE = arrow ] ; then
-		printf -- "$INDENT"
+		printf "%s" "$INDENT"
 	else
-		printf -- "$(print_current_line | format_simple)"
+		printf "%s" "$(print_current_line | format_simple)"
 	fi
 	term_pos_home
 }
 
 cursor_draw () {
 	if [ $STYLE = arrow ] ; then
-		printf -- "$ARROW"
+		printf "%s" "$ARROW"
 	else
-		printf -- "$(print_current_line | format_cursor)"
+		printf "%s" "$(print_current_line | format_cursor)"
 	fi
 	cursor_end
 }
@@ -247,7 +247,7 @@ clean_menu () {
 truncate () { # <width>
 	while read LINE ; do
 		# fold count the tab space unlike cut
-		printf -- "$LINE\n" | fold -w$1 | head -n1
+		printf "%s\n" "$LINE" | fold -w$1 | head -n1
 	done
 }
 
@@ -275,7 +275,7 @@ format_numerated () { # < lines in numerated mode
 }
 
 regescape () { # <string>
-	printf -- "$@" | sed 's,\([[\/.*]\|\]\),\\&,g'
+	printf "%s" "$@" | sed 's,\([[\/.*]\|\]\),\\&,g'
 }
 
 filter_default () { # < lines in numerated mode
@@ -292,25 +292,25 @@ filter_default () { # < lines in numerated mode
 
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
-		printf -- "$LINES" | sed -n "/^$(regescape "$DEFAULT")$/=" | head -n1
+		printf "%s" "$LINES" | sed -n "/^$(regescape "$DEFAULT")$/=" | head -n1
 	fi
 }
 
 print_current_line () {
-	printf -- "$LINES\n" | sed -n ${N}p
+	printf "%s\n" "$LINES" | sed -n ${N}p
 }
 
 numerated_list () {
-	printf -- "$LINES\n" | cat -n | filter_default
+	printf "%s\n" "$LINES" | cat -n | filter_default
 	[ $CLEAN = none ] || get_width
-	CLEAN_COUNT=$(printf -- "$LINES\n" | cat -n | fold -w$WIDTH | wc -l)
+	CLEAN_COUNT=$(printf "%s\n" "$LINES" | cat -n | fold -w$WIDTH | wc -l)
 }
 
 cursor_list () {
 	CLEAN_COUNT=$COUNT
 	configure_tty
 	get_width
-	printf -- "$LINES\n" | format_simple
+	printf "%s\n" "$LINES" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
 	cursor_init
@@ -354,7 +354,7 @@ set_exit_handler () {
 	set_fancy_output
 	handle_args "$@"
 	[ -n "$LINES" ] || exit 0
-	COUNT=$(printf -- "$LINES\n" | wc -l)
+	COUNT=$(printf "%s\n" "$LINES" | wc -l)
 	set_exit_handler
 	{
 		${MODE}_list
