@@ -29,6 +29,7 @@ print_usage () {
 		         ${B}-q$S   quiet = clean all on exit
 		         ${B}-v$S   verbose = keep menu on exit
 		         ${B}-s$S   single choice auto-validated
+		         ${B}-i$S   isolate from stdin
 		         ${B}-h$S   help
 	END_OF_USAGE
 }
@@ -57,12 +58,13 @@ set_defaults () {
 	INDENT=${CHOOSE_INDENT:-'    '}
 	ARROW=${CHOOSE_ARROW:-'=>'}
 	unset TTY_SAVE
+	ISOLATED=false
 	LIST_DONE=false
 }
 
 handle_args () { # <arguments>
 	SELF=$(basename $0)
-	while getopts cnraqvsh ARG ; do
+	while getopts cnraqvsih ARG ; do
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
@@ -71,11 +73,12 @@ handle_args () { # <arguments>
 			q ) CLEAN=all ;;
 			v ) CLEAN=none ;;
 			s ) SINGLE_AUTO=true ;;
+			i ) ISOLATED=true ;;
 			h ) print_help ; exit 0 ;;
 		esac
 	done
 	shift $((OPTIND - 1))
-	if has_batch_input ; then
+	if ! $ISOLATED && has_batch_input ; then
 		DEFAULT=$*
 		lines=$(sed '/^$/d') # choices from standard input
 	else # default is followed by choices as arguments
