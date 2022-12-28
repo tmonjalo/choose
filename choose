@@ -302,7 +302,7 @@ print_current_line () {
 
 numerated_list () {
 	printf "%s\n" "$LINES" | cat -n | filter_default
-	[ $CLEAN = none ] || get_width
+	get_width
 	CLEAN_COUNT=$(printf "%s\n" "$LINES" | cat -n | fold -w$WIDTH | wc -l)
 }
 
