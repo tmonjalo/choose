@@ -143,7 +143,7 @@ configure_tty () {
 }
 
 restore_tty () {
-	test -z "$TTY_SAVE" || stty $TTY_SAVE >&- 2>&-
+	test -z "$TTY_SAVE" || stty $TTY_SAVE >/dev/null 2>&1 || true
 	tput cnorm # show cursor
 }
 
