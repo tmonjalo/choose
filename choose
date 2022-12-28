@@ -45,7 +45,7 @@ alert () { # <comment>
 }
 
 set_defaults () {
-	unset LINES
+	unset lines
 	unset DEFAULT
 	MODE=$CHOOSE_MODE
 	[ "$MODE" = cursor -o "$MODE" = numerated ] || MODE=cursor
@@ -77,13 +77,13 @@ handle_args () { # <arguments>
 	shift $((OPTIND - 1))
 	if has_batch_input ; then
 		DEFAULT=$*
-		LINES=$(sed '/^$/d') # choices from standard input
+		lines=$(sed '/^$/d') # choices from standard input
 	else # default is followed by choices as arguments
 		DEFAULT=$1
 		[ $# -gt 1 ] || usage_alert 'no input'
 		for ARG in $(seq $#) ; do
 			shift
-			LINES=$(printf "%s\n%s" "$LINES" "$1" | sed '/^$/d')
+			lines=$(printf "%s\n%s" "$lines" "$1" | sed '/^$/d')
 		done
 	fi
 }
@@ -292,25 +292,25 @@ filter_default () { # < lines in numerated mode
 
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
-		printf "%s" "$LINES" | sed -n "/^$(regescape "$DEFAULT")$/=" | head -n1
+		printf "%s" "$lines" | sed -n "/^$(regescape "$DEFAULT")$/=" | head -n1
 	fi
 }
 
 print_current_line () {
-	printf "%s\n" "$LINES" | sed -n ${N}p
+	printf "%s\n" "$lines" | sed -n ${N}p
 }
 
 numerated_list () {
-	printf "%s\n" "$LINES" | cat -n | filter_default
+	printf "%s\n" "$lines" | cat -n | filter_default
 	get_width
-	CLEAN_COUNT=$(printf "%s\n" "$LINES" | cat -n | fold -w$WIDTH | wc -l)
+	CLEAN_COUNT=$(printf "%s\n" "$lines" | cat -n | fold -w$WIDTH | wc -l)
 }
 
 cursor_list () {
 	CLEAN_COUNT=$COUNT
 	configure_tty
 	get_width
-	printf "%s\n" "$LINES" | format_simple
+	printf "%s\n" "$lines" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
 	cursor_init
@@ -357,8 +357,8 @@ set_exit_handler () {
 	set_defaults
 	set_fancy_output
 	handle_args "$@"
-	[ -n "$LINES" ] || exit 0
-	COUNT=$(printf "%s\n" "$LINES" | wc -l)
+	[ -n "$lines" ] || exit 0
+	COUNT=$(printf "%s\n" "$lines" | wc -l)
 	set_exit_handler
 	{
 		${MODE}_list
