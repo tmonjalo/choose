@@ -346,7 +346,11 @@ clean () { # [override clean mode]
 }
 
 set_exit_handler () {
-	trap "clean all ; exit 2" INT QUIT TERM
+# http://www.zsh.org/mla/users/2010/msg00347.html
+# http://www.cons.org/cracauer/sigint.html
+	trap "clean     ; trap - INT  ; kill -INT  $$" INT
+	trap "clean all ; trap - QUIT ; kill -QUIT $$" QUIT
+	trap "clean all ; trap - TERM ; kill -TERM $$" TERM
 }
 
 { # main
