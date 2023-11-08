@@ -24,6 +24,7 @@ print_usage () {
 		options:
 		         ${B}-c$S   cursor mode (default)
 		         ${B}-n$S   numerated mode
+		         ${B}-l$S   value/label mode with a given separator
 		         ${B}-r$S   reversed style (default)
 		         ${B}-a$S   arrow style
 		         ${B}-q$S   quiet = clean all on exit
@@ -64,10 +65,11 @@ set_defaults () {
 
 handle_args () { # <arguments>
 	SELF=$(basename $0)
-	while getopts cnraqvsih ARG ; do
+	while getopts cnl:raqvsih ARG ; do
 		case $ARG in
 			c ) MODE=cursor ;;
 			n ) MODE=numerated ;;
+			l ) LABEL_SEP=${OPTARG} ;;
 			r ) STYLE=reversed ;;
 			a ) STYLE=arrow ;;
 			q ) CLEAN=all ;;
@@ -88,6 +90,13 @@ handle_args () { # <arguments>
 			shift
 			lines=$(printf "%s\n%s" "$lines" "$1" | sed '/^$/d')
 		done
+	fi
+	if [ -n "$LABEL_SEP" ]; then
+		values=$(echo "$lines" | sed 's/'"$LABEL_SEP"'.*$//g')
+		lines=$(echo "$lines" | sed 's/^[^'"$LABEL_SEP"']*'"$LABEL_SEP"'//g')
+		DEFAULT=${DEFAULT#*$LABEL_SEP}
+	else
+		values=$lines
 	fi
 }
 
@@ -303,6 +312,10 @@ print_current_line () {
 	printf "%s\n" "$lines" | sed -n ${N}p
 }
 
+print_current_value () {
+	printf "%s\n" "$values" | sed -n ${N}p
+}
+
 numerated_list () {
 	printf "%s\n" "$lines" | cat -n | filter_default
 	get_width
@@ -374,4 +387,4 @@ set_exit_handler () {
 		clean
 	} <$(get_tty_input)
 } >&2
-print_current_line # return chosen line on standard output
+print_current_value # return chosen line/value on standard output
