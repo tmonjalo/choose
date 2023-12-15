@@ -163,6 +163,16 @@ get_width () {
 	WIDTH=$(stty size | cut -d' ' -f2)
 }
 
+get_height () {
+	HEIGHT=$(stty size | cut -d' ' -f1)
+	if [ $HEIGHT -gt ${CHOOSE_WINDOW_MAX_HEIGHT:-$HEIGHT} ] ; then
+		HEIGHT=$CHOOSE_WINDOW_MAX_HEIGHT
+	fi
+	if [ $HEIGHT -gt $COUNT ] ; then
+		HEIGHT=$COUNT
+	fi
+}
+
 set_fancy_output () {
 	if is_redirected ; then
 		unset S B U R
@@ -190,52 +200,42 @@ term_pos_down () { # [lines count]
 	printf "\033[$1B" # go down (default to 1 line)
 }
 
-term_pos_home () {
-	printf "\033[${WIDTH}D" # go to beginning of line
-}
-
 term_clear_bottom () {
 	printf '\033[J' # clear lines from current position
 }
 
-cursor_begin () {
-	term_pos_save
-	term_pos_up $((COUNT - N + 1)) # go up to current line
-}
-
-cursor_end () {
-	term_pos_restore
-}
-
 cursor_erase () {
-	cursor_begin
+	term_pos_restore
+	if [ $C -gt 1 ] ; then
+		term_pos_down $((C - 1))
+	fi
 	if [ $STYLE = arrow ] ; then
 		printf "%s" "$INDENT"
 	else
 		printf "%s" "$(print_current_line | format_simple)"
 	fi
-	term_pos_home
 }
 
 cursor_draw () {
+	term_pos_restore
+	if [ $C -gt 1 ] ; then
+		term_pos_down $((C - 1))
+	fi
 	if [ $STYLE = arrow ] ; then
 		printf "%s" "$ARROW"
 	else
 		printf "%s" "$(print_current_line | format_cursor)"
 	fi
-	cursor_end
 }
 
 cursor_init () {
-	cursor_begin
 	cursor_draw
 }
 
 cursor_up () {
 	if [ $N -gt 1 ] ; then
 		cursor_erase
-		term_pos_up
-		N=$((N - 1))
+		cursor_move -1
 		cursor_draw
 	fi
 }
@@ -243,15 +243,46 @@ cursor_up () {
 cursor_down () {
 	if [ $N -lt $COUNT ] ; then
 		cursor_erase
-		term_pos_down
-		N=$((N + 1))
+		cursor_move 1
 		cursor_draw
 	fi
 }
 
+cursor_move() {
+	N=$((N + $1))
+	OMIN=${NMIN:-1}
+	compute_menu_window
+	if [ $OMIN -ne $NMIN ] ; then
+		term_pos_restore
+		term_clear_bottom
+		term_pos_restore
+		print_lines | format_simple | head -c -1
+		printf "\r"
+		term_pos_restore
+	fi
+}
+
+compute_menu_window() {
+	get_height
+	if [ $COUNT -gt $HEIGHT ] ; then
+		NMIN=$((N - (HEIGHT / 2)))
+		NMAX=$((NMIN + HEIGHT - 1))
+		if [ $NMIN -lt 1 ] ; then
+			NMAX=$((NMAX - NMIN + 1))
+			NMIN=$((NMIN - NMIN + 1))
+		elif [ $NMAX -gt $COUNT ] ; then
+			NMIN=$((NMIN + COUNT - NMAX))
+			NMAX=$((NMAX - NMAX + COUNT))
+		fi
+	else
+		NMIN=1
+		NMAX=$COUNT
+	fi
+	C=$((N - NMIN + 1))
+}
+
 clean_menu () {
-	term_pos_up $CLEAN_COUNT # go to first line
-	term_pos_home
+	term_pos_restore
 	term_clear_bottom
 	[ $CLEAN = all ] || print_current_line | format_$MODE
 }
@@ -302,6 +333,10 @@ filter_default () { # < lines in numerated mode
 	fi
 }
 
+print_lines() {
+	printf "%s\n" "$lines" | sed -n "${NMIN:-1},${NMAX:-$COUNT} p"
+}
+
 get_default_index () {
 	if [ -n "$DEFAULT" ] ; then
 		printf "%s" "$lines" | sed -n "/^$(regescape "$DEFAULT")$/=" | head -n1
@@ -309,7 +344,7 @@ get_default_index () {
 }
 
 print_current_line () {
-	printf "%s\n" "$lines" | sed -n ${N}p
+	print_lines | sed -n ${C}p
 }
 
 print_current_value () {
@@ -317,18 +352,22 @@ print_current_value () {
 }
 
 numerated_list () {
-	printf "%s\n" "$lines" | cat -n | filter_default
+	print_lines | cat -n | filter_default
 	get_width
-	CLEAN_COUNT=$(printf "%s\n" "$lines" | cat -n | fold -w$WIDTH | wc -l)
+	CLEAN_COUNT=$(print_lines | cat -n | fold -w$WIDTH | wc -l)
 }
 
 cursor_list () {
 	CLEAN_COUNT=$COUNT
-	configure_tty
-	get_width
-	printf "%s\n" "$lines" | format_simple
 	N=$(get_default_index)
 	isdigit "$N" || N=1 # fallback to first choice
+	compute_menu_window
+	configure_tty
+	get_width
+	print_lines | format_simple | head -c -1
+	printf "\r"
+	test $HEIGHT -eq 1 || term_pos_up $((HEIGHT - 1))
+	term_pos_save
 	cursor_init
 }
 
@@ -338,6 +377,7 @@ numerated_choice () { # < user input
 		read N
 		CLEAN_COUNT=$((CLEAN_COUNT + 1))
 		test -n "$N" || N=$(get_default_index) # ENTER = default choice
+		C=$N
 		isdigit "$N" || N=0 # fallback to invalid choice
 		[ $N -lt 1 -o $COUNT -lt $N ] || break
 	done
@@ -375,6 +415,7 @@ set_exit_handler () {
 	handle_args "$@"
 	[ -n "$lines" ] || exit 0
 	COUNT=$(printf "%s\n" "$lines" | wc -l)
+	HEIGHT=$COUNT
 	set_exit_handler
 	{
 		${MODE}_list
