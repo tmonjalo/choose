@@ -51,8 +51,6 @@ Bugs
 
 * In numerated mode with default verbose, clearing may be wrong if there are long lines with non printable characters.
 
-* Long lists with more lines than the terminal height are only supported in verbose numerated mode.
-
 
 Dependencies
 ------------
